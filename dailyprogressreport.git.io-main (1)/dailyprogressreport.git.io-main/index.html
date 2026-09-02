@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#0E6B66">
+  <meta name="description" content="Shimla 24x7 Water Supply Project - DPR Management System">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="DPR System">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- PWA: installable app -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/favicon.png" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <title>Shimla 24x7 Water Supply — DPR Management</title>
+
+  <!-- ============================================================
+       SOCIAL / WHATSAPP LINK PREVIEW  (Open Graph + Twitter Card)
+       To change the preview text/image, edit the lines below.
+       og:image must be a full https:// URL of an image at your domain.
+       ============================================================ -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="DPR Management System">
+  <meta property="og:title" content="DPR Management System — Shimla 24x7 Water Supply Project">
+  <meta property="og:description" content="Daily Progress Report system for Pipe Laying, Hydro Testing and Road Restoration. Field data collection, reports and analytics.">
+  <meta property="og:url" content="https://dprmanagementsystem.in/">
+  <meta property="og:image" content="https://dprmanagementsystem.in/og-image.png?v=1">
+  <meta property="og:image:secure_url" content="https://dprmanagementsystem.in/og-image.png?v=1">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="DPR Management System — Shimla 24x7 Water Supply Project">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DPR Management System — Shimla 24x7 Water Supply Project">
+  <meta name="twitter:description" content="Daily Progress Report system for Pipe Laying, Hydro Testing and Road Restoration.">
+  <meta name="twitter:image" content="https://dprmanagementsystem.in/og-image.png?v=1">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css?v=15">
+  <link rel="stylesheet" href="css/dashboard.css?v=15">
+  <link rel="stylesheet" href="css/forms.css?v=15">
+  <link rel="stylesheet" href="css/admin.css?v=15">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+</head>
+<body>
+
+<!-- ==================== BRAND LOGO SPRITE ==================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="logo-drop" viewBox="0 0 64 64">
+    <path d="M32 5 C32 5 51 26 51 39.5 A19 19 0 0 1 13 39.5 C13 26 32 5 32 5 Z" fill="currentColor"/>
+    <path d="M24.5 36.5 a7.5 7.5 0 0 0 7.5 7.5" fill="none" stroke="rgba(8,40,38,.45)" stroke-width="3.4" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<!-- ==================== LOADING SCREEN ==================== -->
+<div id="loading-screen">
+  <div class="loader-logo"><svg class="brand-logo" aria-hidden="true"><use href="#logo-drop"></use></svg></div>
+  <div class="loader-text">
+    <h1>Shimla 24x7 Water Supply Project</h1>
+    <p>DPR Management System</p>
+  </div>
+  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  <div id="connection-status" class="connection-badge online">
+    <i class="fa-solid fa-wifi"></i> <span>Connected</span>
+  </div>
+</div>
+
+<!-- ==================== TOAST CONTAINER ==================== -->
+<div id="toast-container"></div>
+
+<!-- ==================== BUSY OVERLAY (blocks taps during async work) ==================== -->
+<div id="busy-overlay" aria-hidden="true" role="status">
+  <div class="busy-card">
+    <span class="busy-spinner"><i class="fa-solid fa-spinner fa-spin"></i></span>
+    <span class="busy-text" id="busy-text">Working…</span>
+  </div>
+</div>
+
+<!-- ==================== LOGIN SCREEN (Admin) ==================== -->
+<div id="login-screen">
+  <div class="login-bg"></div>
+  <div class="login-grid"></div>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-logo"><svg class="brand-logo" aria-hidden="true"><use href="#logo-drop"></use></svg></div>
+        <h1>Shimla 24x7 Water Supply Project</h1>
+        <p>Daily Progress Report Management System</p>
+      </div>
+      <form class="login-form" id="admin-login-form">
+        <div class="form-group">
+          <label class="form-label">Admin User ID</label>
+          <div class="input-wrapper">
+            <i class="input-icon fa-solid fa-user-shield"></i>
+            <input type="text" id="login-username" class="form-input" placeholder="e.g. admin" autocomplete="username" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper">
+            <i class="input-icon fa-solid fa-lock"></i>
+            <input type="password" id="login-password" class="form-input" placeholder="Enter password" autocomplete="current-password" required>
+            <button type="button" class="input-toggle" id="pw-toggle-btn" aria-label="Toggle password visibility">
+              <i class="fa-solid fa-eye-slash" id="pw-toggle-icon"></i>
+            </button>
+          </div>
+        </div>
+        <div class="login-error" id="login-error">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="login-error-msg">Invalid credentials</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg" id="login-btn">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Admin Sign In
+        </button>
+      </form>
+
+      <div class="login-divider">or</div>
+
+      <button class="btn btn-outline btn-lg btn-block" id="show-eng-btn">
+        <i class="fa-solid fa-hard-hat"></i> Engineer Sign In
+      </button>
+
+      <button class="btn btn-outline btn-lg btn-block install-btn" data-install-btn hidden style="margin-top:14px;">
+        <i class="fa-solid fa-download"></i> Install app on this device
+      </button>
+
+      <div class="login-footer">Shimla 24x7 Water Supply Project &copy; 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ENGINEER SELECTION SCREEN ==================== -->
+<div id="eng-select-screen">
+  <div class="eng-select-wrap">
+    <div class="eng-select-card">
+      <div class="eng-select-header">
+        <div class="icon"><i class="fa-solid fa-hard-hat"></i></div>
+        <h2>Select Your Profile</h2>
+        <p>Search and select your engineer profile to continue</p>
+      </div>
+      <div class="eng-select-search">
+        <div class="search-wrapper">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="eng-select-search-input" placeholder="Search by name or employee ID..." autocomplete="off">
+        </div>
+      </div>
+      <div class="eng-select-grid" id="eng-select-grid">
+        <div class="eng-loading">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <p>Loading engineers...</p>
+        </div>
+      </div>
+      <div class="eng-select-back">
+        <button class="btn btn-outline" id="back-to-login-btn">
+          <i class="fa-solid fa-arrow-left"></i> Back to Login
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ENGINEER PASSWORD MODAL ==================== -->
+<div class="modal-overlay" id="eng-password-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-lock" style="color: var(--teal-500); margin-right: 8px;"></i>Enter Your PIN</h3>
+      <button class="modal-close" id="eng-password-close" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="eng-password-info">
+      <div class="esi-avatar-large" id="eng-password-avatar">E</div>
+      <div class="eng-name" id="eng-password-name">Engineer Name</div>
+      <div class="eng-id" id="eng-password-empId">EMP001</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="text-align: center;">Numeric PIN</label>
+      <div class="password-input-wrapper">
+        <input type="password" id="eng-password-input" class="form-control" placeholder="------" maxlength="10" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+      </div>
+      <p class="form-hint">Enter your personal numeric PIN set by admin</p>
+      <div class="password-error" id="eng-password-error">
+        <i class="fa-solid fa-circle-exclamation"></i> Incorrect PIN. Please try again.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="eng-password-cancel">Cancel</button>
+      <button class="btn btn-primary" id="eng-password-verify">
+        <i class="fa-solid fa-unlock"></i> Verify & Continue
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CONFIRM DELETE MODAL ==================== -->
+<div class="sw-modal-overlay" id="modal-confirm">
+  <div class="sw-modal">
+    <div class="sw-modal-head">
+      <h3 id="modal-confirm-title">Confirm Delete</h3>
+      <button class="modal-close" id="modal-confirm-close" style="background: var(--app-slate-light); border-color: var(--app-line); color: var(--app-slate);">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="sw-modal-body">
+      <p id="confirm-msg">Are you sure you want to delete this record? This action cannot be undone.</p>
+    </div>
+    <div class="sw-modal-foot">
+      <button class="sw-btn sw-btn-ghost" id="confirm-cancel">Cancel</button>
+      <button class="sw-btn sw-btn-danger" id="confirm-btn">
+        <i class="fa-solid fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SHARE DPR MODAL (WhatsApp) ==================== -->
+<div class="sw-modal-overlay" id="modal-share">
+  <div class="sw-modal sw-modal-share">
+    <div class="sw-modal-head">
+      <h3><i class="fa-brands fa-whatsapp" style="color:#25D366"></i> Share Daily Progress Report</h3>
+      <button class="modal-close" id="share-close-btn" style="background: var(--app-slate-light); border-color: var(--app-line); color: var(--app-slate);">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="sw-modal-body">
+      <p class="share-hint">Preview of the report. Copy it or open WhatsApp to choose a contact.</p>
+      <pre id="share-preview" class="share-preview"></pre>
+    </div>
+    <div class="sw-modal-foot">
+      <button class="sw-btn sw-btn-ghost" id="share-copy-btn"><i class="fa-regular fa-copy"></i> Copy</button>
+      <button class="sw-btn sw-btn-wa" id="share-wa-btn"><i class="fa-brands fa-whatsapp"></i> Share on WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EDIT FIELD MODAL (Admin) ==================== -->
+<div class="sw-modal-overlay" id="modal-field-edit">
+  <div class="sw-modal">
+    <div class="sw-modal-head">
+      <h3 id="modal-field-edit-title">Edit Field</h3>
+      <button class="modal-close" id="fe_close" aria-label="Close" style="background: var(--app-slate-light); border-color: var(--app-line); color: var(--app-slate);">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="sw-modal-body">
+      <div class="row2">
+        <div class="field">
+          <label for="fe_label">Field Label <span class="req">*</span></label>
+          <input type="text" id="fe_label" class="sw-input" placeholder="e.g. Pipe Dia">
+        </div>
+        <div class="field">
+          <label for="fe_fieldId">Field ID</label>
+          <input type="text" id="fe_fieldId" class="sw-input" disabled>
+          <p class="desc">Locked — changing it would orphan saved data.</p>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label for="fe_type">Type</label>
+          <select id="fe_type" class="sw-select">
+            <option value="text">Text</option>
+            <option value="number">Number</option>
+            <option value="dropdown">Dropdown</option>
+            <option value="date">Date</option>
+            <option value="textarea">Textarea</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fe_section">Section</label>
+          <select id="fe_section" class="sw-select">
+            <option value="work">Work Details</option>
+            <option value="location">Location</option>
+            <option value="pipe">Pipe Specification</option>
+            <option value="restoration">Restoration</option>
+            <option value="fittings">Fittings &amp; Meters</option>
+            <option value="manpower">Manpower &amp; Time</option>
+            <option value="contractor">Contractor</option>
+            <option value="remarks">Remarks</option>
+            <option value="custom">Custom Section</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fe_order">Display Order</label>
+          <input type="number" id="fe_order" class="sw-input" min="0" step="1">
+        </div>
+      </div>
+      <div class="field" id="fe_optionsRow" style="display:none;">
+        <label for="fe_options">Dropdown Options</label>
+        <textarea id="fe_options" class="sw-textarea" rows="2" placeholder="Comma separated, e.g. Yes, No, Partial"></textarea>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="fe_workType">Show For Work Type</label>
+          <select id="fe_workType" class="sw-select">
+            <option value="">All work types</option>
+            <option value="Pipe Laying">Pipe Laying</option>
+            <option value="Hydro Test">Hydro Test</option>
+            <option value="Road Restoration">Road Restoration</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fe_layingWork">Show For Laying Work</label>
+          <select id="fe_layingWork" class="sw-select">
+            <option value="">All laying work</option>
+            <option value="Distribution Main">Distribution Main</option>
+            <option value="Transmission Main">Transmission Main</option>
+            <option value="House Service Connection">House Service Connection</option>
+            <option value="Restoration">Restoration</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field" style="display:flex; flex-direction:column; gap:10px; justify-content:center;">
+          <label style="display:flex; align-items:center; gap:8px; margin:0; cursor:pointer;">
+            <input type="checkbox" id="fe_required" class="sw-checkbox"> Required field
+          </label>
+          <label style="display:flex; align-items:center; gap:8px; margin:0; cursor:pointer;">
+            <input type="checkbox" id="fe_visible" class="sw-checkbox"> Visible in DPR form
+          </label>
+        </div>
+        <div class="field"></div>
+      </div>
+    </div>
+    <div class="sw-modal-foot">
+      <button class="sw-btn sw-btn-ghost" id="fe_cancel">Cancel</button>
+      <button class="sw-btn sw-btn-primary" id="fe_save"><i class="fa-solid fa-save"></i> Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== iOS INSTALL HELP MODAL ==================== -->
+<div class="sw-modal-overlay" id="modal-ios-install">
+  <div class="sw-modal">
+    <div class="sw-modal-head">
+      <h3>Install on your iPhone or iPad</h3>
+      <button class="modal-close" id="ios-install-close" aria-label="Close" style="background: var(--app-slate-light); border-color: var(--app-line); color: var(--app-slate);">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <div class="sw-modal-body">
+      <ol class="ios-steps">
+        <li>Tap the <strong>Share</strong> button <i class="fa-solid fa-arrow-up-from-bracket"></i> in the Safari toolbar.</li>
+        <li>Scroll down and choose <strong>Add to Home Screen</strong> <i class="fa-solid fa-square-plus"></i>.</li>
+        <li>Tap <strong>Add</strong> — the DPR app icon appears on your home screen.</li>
+      </ol>
+    </div>
+    <div class="sw-modal-foot">
+      <button class="sw-btn sw-btn-primary" id="ios-install-ok">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MAIN APP SHELL ==================== -->
+<div id="app">
+
+  <!-- Navigation drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="navDrawer" aria-label="Main navigation">
+    <div class="drawer-head">
+      <div class="drawer-logo"><svg class="brand-logo" aria-hidden="true"><use href="#logo-drop"></use></svg></div>
+      <div class="drawer-title">
+        <span class="drawer-eyebrow">Shimla 24x7 Water Supply</span>
+        <strong>DPR System</strong>
+      </div>
+      <button class="drawer-close" id="drawerClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <nav class="drawer-nav" id="drawerNav">
+      <button class="drawer-item" data-nav="dash"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></button>
+
+      <div class="drawer-group-label">DPR Entry</div>
+      <button class="drawer-item" data-module="Pipe Laying"><i class="fa-solid fa-water"></i><span>Pipe Laying</span></button>
+      <button class="drawer-item" data-module="Road Restoration"><i class="fa-solid fa-road"></i><span>Road Restoration</span></button>
+      <button class="drawer-item" data-module="Hydro Test"><i class="fa-solid fa-gauge"></i><span>Hydro Test</span></button>
+
+      <div class="drawer-group-label">Records</div>
+      <button class="drawer-item" data-nav="log"><i class="fa-solid fa-table-list"></i><span>Reports</span></button>
+
+      <div class="drawer-group-label drawer-admin-only">Administration</div>
+      <button class="drawer-item drawer-admin-only" data-nav="engineers"><i class="fa-solid fa-users-gear"></i><span>User Management</span></button>
+      <button class="drawer-item drawer-admin-only" data-nav="admin"><i class="fa-solid fa-sliders"></i><span>Settings</span></button>
+
+      <div class="drawer-spacer"></div>
+      <button class="drawer-item drawer-logout" id="drawerLogout"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></button>
+    </nav>
+  </aside>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button class="menu-toggle" id="menuToggle" aria-label="Open menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="topbar-left">
+        <div class="topbar-logo"><svg class="brand-logo" aria-hidden="true"><use href="#logo-drop"></use></svg></div>
+        <div class="topbar-brand">
+        <p class="eyebrow">Shimla 24x7 Water Supply Project</p>
+        <h1>Daily Progress Report</h1>
+        <p class="sub">Field Data Collector for Pipe Laying, Hydro Testing and Road Restoration</p>
+      </div>
+      </div><!-- /topbar-left -->
+      <div class="topbar-user">
+        <p class="who" id="whoami">--</p>
+        <div class="topbar-actions">
+          <button type="button" class="sw-btn sw-btn-ghost sw-btn-sm install-btn" id="installBtnTop" data-install-btn hidden title="Install app">
+            <i class="fa-solid fa-download"></i> <span class="install-label">Install</span>
+          </button>
+          <button type="button" class="sw-btn sw-btn-ghost sw-btn-sm" id="refreshBtn" title="Refresh">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+          <button type="button" class="sw-btn sw-btn-ghost sw-btn-sm" id="logoutBtn">
+            <i class="fa-solid fa-right-from-bracket"></i> <span class="btn-label">Logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="tabs">
+    <div class="inner">
+      <button class="tab-btn active" data-tab="entry">
+        <i class="fa-solid fa-pen-to-square"></i> New Entry
+      </button>
+      <button class="tab-btn" data-tab="log">
+        <i class="fa-solid fa-list"></i> Reports Log
+      </button>
+      <button class="tab-btn" data-tab="dash">
+        <i class="fa-solid fa-chart-simple"></i> Dashboard
+      </button>
+      <button class="tab-btn" data-tab="engineers" id="engineersTabBtn" style="display:none;">
+        <i class="fa-solid fa-users-gear"></i> Engineers
+      </button>
+      <button class="tab-btn" data-tab="admin" id="adminTabBtn" style="display:none;">
+        <i class="fa-solid fa-shield-halved"></i> Admin
+      </button>
+    </div>
+  </nav>
+
+  <div class="app-content">
+
+    <!-- ================= ENTRY VIEW ================= -->
+    <section class="view active" id="view-entry">
+      <div class="module-banner" id="moduleBanner" style="display:none;"></div>
+      <div class="editing-banner" id="editingBanner">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <span>Editing an existing entry -- saving will update this record instead of creating a new one.</span>
+      </div>
+
+      <!-- Dynamic DPR Form -->
+      <form id="dprForm" novalidate>
+        <!-- Work Details Card -->
+        <div class="sw-card">
+          <div class="sw-card-head" style="--accent: var(--app-teal); --accent-light: var(--app-teal-light);">
+            <div class="ic"><i class="fa-solid fa-clipboard-list"></i></div>
+            <div>
+              <h2>Work Details</h2>
+              <p class="hint">S.No and Month auto-generate</p>
+            </div>
+          </div>
+          <div class="sw-card-body" id="work-details-body">
+            <div class="row3">
+              <div class="field">
+                <label for="f_sno">S. No. <span class="opt">auto</span></label>
+                <input type="text" id="f_sno" class="sw-input" readonly>
+              </div>
+              <div class="field">
+                <label for="f_date">Date <span class="req">*</span></label>
+                <input type="date" id="f_date" class="sw-input" required>
+              </div>
+              <div class="field">
+                <label for="f_month">Month <span class="opt">auto</span></label>
+                <input type="text" id="f_month" class="sw-input" readonly>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field" id="worktypeField">
+                <label for="f_worktype">Work Type <span class="req">*</span></label>
+                <select id="f_worktype" class="sw-select" required>
+                  <option value="" disabled selected>Select work type</option>
+                  <option value="Pipe Laying">Pipe Laying</option>
+                  <option value="Hydro Test">Hydro Test</option>
+                  <option value="Road Restoration">Road Restoration</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="f_laying">Laying Work <span class="req">*</span></label>
+                <select id="f_laying" class="sw-select" required>
+                  <option value="" disabled selected>Select activity</option>
+                  <option value="Distribution Main">Distribution Main</option>
+                  <option value="Transmission Main">Transmission Main</option>
+                  <option value="House Service Connection">House Service Connection</option>
+                  <option value="Restoration">Restoration</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Fields Container -->
+        <div id="dynamic-fields-container"></div>
+
+        <!-- Hidden default fields that show/hide based on laying work -->
+        <!-- Location Card -->
+        <div class="sw-card field-group-laying" id="card-location">
+          <div class="sw-card-head" style="--accent: var(--app-sky); --accent-light: var(--app-sky-light);">
+            <div class="ic"><i class="fa-solid fa-location-dot"></i></div>
+            <div>
+              <h2>Location</h2>
+              <p class="hint">Zone &amp; DMA are filtered by Package</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="field" id="field-package">
+              <label for="f_package">Package No. <span class="req">*</span></label>
+              <select id="f_package" class="sw-select" required>
+                <option value="" disabled selected>Select package</option>
+              </select>
+            </div>
+            <div class="row2">
+              <div class="field" id="field-zone">
+                <label for="f_zone">Zone No. <span class="req">*</span></label>
+                <select id="f_zone" class="sw-select" required disabled>
+                  <option value="" disabled selected>Select package first</option>
+                </select>
+              </div>
+              <div class="field" id="field-dma">
+                <label for="f_dma">DMA No. <span class="req">*</span></label>
+                <select id="f_dma" class="sw-select" required disabled>
+                  <option value="" disabled selected>Select zone first</option>
+                </select>
+              </div>
+            </div>
+            <div class="field" id="field-stretch" style="display:none;">
+              <label for="f_stretch">Transmission Stretch Name <span id="stretchReqMark" class="opt">optional</span></label>
+              <input type="text" id="f_stretch" class="sw-input" placeholder="e.g. Gumma-Dhalli Rising Main, Ch. 2+400 to 2+800">
+              <p class="desc">Required when Laying Work is Transmission.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipe Spec Card -->
+        <div class="sw-card field-group-laying" id="card-pipe">
+          <div class="sw-card-head" style="--accent: var(--app-slate); --accent-light: var(--app-slate-light);">
+            <div class="ic"><i class="fa-solid fa-database"></i></div>
+            <div>
+              <h2>Pipe Specification</h2>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="row2">
+              <div class="field" id="field-pipeDia">
+                <label for="f_pipeDia">Pipe Dia <span class="req">*</span></label>
+                <select id="f_pipeDia" class="sw-select" required>
+                  <option value="" disabled selected>Select diameter</option>
+                </select>
+              </div>
+              <div class="field" id="field-layingLength">
+                <label for="f_layingLength">Laying Length <span class="req">*</span></label>
+                <div class="unit-wrap">
+                  <input type="number" id="f_layingLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00" required>
+                  <span>metres</span>
+                </div>
+              </div>
+            </div>
+            <div class="field" id="field-joints">
+              <label for="f_joints">Number of Joints <span class="req">*</span></label>
+              <input type="number" id="f_joints" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- Excavation Card (Pipe Laying only) -->
+        <div class="sw-card" id="card-excavation">
+          <div class="sw-card-head" style="--accent: var(--app-slate); --accent-light: var(--app-slate-light);">
+            <div class="ic"><i class="fa-solid fa-shovel"></i></div>
+            <div>
+              <h2>Excavation Details</h2>
+              <p class="hint">Volume is calculated automatically</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="row3">
+              <div class="field" id="field-excavLength">
+                <label for="f_excavLength">Excavation Length <span class="req">*</span></label>
+                <div class="unit-wrap">
+                  <input type="number" id="f_excavLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00" required>
+                  <span>m</span>
+                </div>
+              </div>
+              <div class="field" id="field-excavWidth">
+                <label for="f_excavWidth">Excavation Width <span class="req">*</span></label>
+                <div class="unit-wrap">
+                  <input type="number" id="f_excavWidth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00" required>
+                  <span>m</span>
+                </div>
+              </div>
+              <div class="field" id="field-excavDepth">
+                <label for="f_excavDepth">Excavation Depth <span class="req">*</span></label>
+                <div class="unit-wrap">
+                  <input type="number" id="f_excavDepth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00" required>
+                  <span>m</span>
+                </div>
+              </div>
+            </div>
+            <div class="field" id="field-excavVolume">
+              <label for="f_excavVolume">Excavation Volume <span class="opt">auto</span></label>
+              <div class="unit-wrap">
+                <input type="number" id="f_excavVolume" class="sw-input" readonly placeholder="0.00">
+                <span>m&sup3;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fittings Card (Ferrule, Ball Valve, Meter Box, Water Meter) -->
+        <div class="sw-card" id="card-fittings">
+          <div class="sw-card-head" style="--accent: var(--app-moss); --accent-light: var(--app-moss-light);">
+            <div class="ic"><i class="fa-solid fa-faucet"></i></div>
+            <div>
+              <h2>Fittings &amp; Meters</h2>
+              <p class="hint">House Service Connection only</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="row2">
+              <div class="field" id="field-ferrule">
+                <label for="f_ferrule">Ferrule <span class="opt">optional</span></label>
+                <input type="number" id="f_ferrule" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+              <div class="field" id="field-ballValve">
+                <label for="f_ballValve">Ball Valve <span class="opt">optional</span></label>
+                <input type="number" id="f_ballValve" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field" id="field-meterBox">
+                <label for="f_meterBox">Meter Box <span class="opt">optional</span></label>
+                <input type="number" id="f_meterBox" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+              <div class="field" id="field-waterMeter">
+                <label for="f_waterMeter">Water Meter <span class="opt">optional</span></label>
+                <input type="number" id="f_waterMeter" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Restoration Card (shown for Road Restoration work type) -->
+        <div class="sw-card hidden" id="card-restoration">
+          <div class="sw-card-head" style="--accent: var(--app-amber); --accent-light: var(--app-amber-light);">
+            <div class="ic"><i class="fa-solid fa-road"></i></div>
+            <div>
+              <h2>Road Restoration</h2>
+              <p class="hint">Area restored after pipe laying</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="row2">
+              <div class="field" id="field-restoredLength">
+                <label for="f_restoredLength">Restored Length <span class="req">*</span></label>
+                <div class="unit-wrap">
+                  <input type="number" id="f_restoredLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.0">
+                  <span>metres</span>
+                </div>
+              </div>
+              <div class="field" id="field-restoredWidth">
+                <label for="f_restoredWidth">Restored Width <span class="req">*</span></label>
+                <div class="unit-wrap">
+                  <input type="number" id="f_restoredWidth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.0">
+                  <span>metres</span>
+                </div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field" id="field-surfaceType">
+                <label for="f_surfaceType">Surface Type <span class="req">*</span></label>
+                <select id="f_surfaceType" class="sw-select">
+                  <option value="" disabled selected>Select surface</option>
+                  <option>Concrete Road</option>
+                  <option>Bituminous Road</option>
+                  <option>Interlocking Pavers</option>
+                  <option>Earthen Surface</option>
+                  <option>Footpath</option>
+                </select>
+              </div>
+              <div class="field" id="field-restoredArea">
+                <label for="f_restoredArea">Restored Area <span class="opt">auto</span></label>
+                <div class="unit-wrap">
+                  <input type="number" id="f_restoredArea" class="sw-input" readonly placeholder="0.00">
+                  <span>sqm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hydro Test Card (shown for Hydro Test work type) -->
+        <div class="sw-card hidden" id="card-hydro">
+          <div class="sw-card-head" style="--accent: var(--app-sky); --accent-light: var(--app-sky-light);">
+            <div class="ic"><i class="fa-solid fa-gauge-high"></i></div>
+            <div>
+              <h2>Hydro Test</h2>
+              <p class="hint">Pressure test details</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="row2">
+              <div class="field" id="field-testedLength">
+                <label for="f_testedLength">Tested Length <span class="req">*</span></label>
+                <div class="unit-wrap">
+                  <input type="number" id="f_testedLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00">
+                  <span>metres</span>
+                </div>
+              </div>
+              <div class="field" id="field-testPressure">
+                <label for="f_testPressure">Test Pressure <span class="req">*</span></label>
+                <div class="unit-wrap">
+                  <input type="number" id="f_testPressure" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.0">
+                  <span>Bar</span>
+                </div>
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field" id="field-startTime">
+                <label for="f_startTime">Start Time <span class="req">*</span></label>
+                <input type="time" id="f_startTime" class="sw-input">
+              </div>
+              <div class="field" id="field-endTime">
+                <label for="f_endTime">End Time <span class="req">*</span></label>
+                <input type="time" id="f_endTime" class="sw-input">
+              </div>
+            </div>
+            <div class="field" id="field-testResult">
+              <label for="f_testResult">Test Result <span class="req">*</span></label>
+              <select id="f_testResult" class="sw-select">
+                <option value="" disabled selected>Select result</option>
+                <option>Passed</option>
+                <option>Failed</option>
+                <option>Leakage Observed</option>
+                <option>Retesting Required</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manpower Card -->
+        <div class="sw-card" id="card-manpower">
+          <div class="sw-card-head" style="--accent: var(--app-amber); --accent-light: var(--app-amber-light);">
+            <div class="ic"><i class="fa-solid fa-users"></i></div>
+            <div>
+              <h2>Manpower &amp; Time</h2>
+              <p class="hint">Total Working Manpower is calculated automatically</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="row3">
+              <div class="field" id="field-noOfTeam">
+                <label for="f_noOfTeam">No of Team <span class="req">*</span></label>
+                <input type="number" id="f_noOfTeam" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+              </div>
+              <div class="field" id="field-welder">
+                <label for="f_welder">Welder (Skilled) <span class="req">*</span></label>
+                <input type="number" id="f_welder" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+              </div>
+              <div class="field" id="field-fitter">
+                <label for="f_fitter">Fitter (Skilled) <span class="req">*</span></label>
+                <input type="number" id="f_fitter" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+              </div>
+            </div>
+            <div class="row3">
+              <div class="field" id="field-unskilledLabour">
+                <label for="f_unskilledLabour">Unskilled Labour <span class="req">*</span></label>
+                <input type="number" id="f_unskilledLabour" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+              </div>
+              <div class="field" id="field-manpower">
+                <label for="f_manpower">Total Working Manpower <span class="opt">auto</span></label>
+                <input type="number" id="f_manpower" class="sw-input" readonly placeholder="0" required>
+              </div>
+              <div class="field" id="field-workTime">
+                <label for="f_workTime">Work Time (Hours) <span class="req">*</span></label>
+                <input type="number" id="f_workTime" class="sw-input" min="0" max="24" step="any" inputmode="decimal" placeholder="0.0" required>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contractor Card -->
+        <div class="sw-card" id="card-contractor">
+          <div class="sw-card-head" style="--accent: var(--app-teal-dark); --accent-light: var(--app-teal-light);">
+            <div class="ic"><i class="fa-solid fa-building"></i></div>
+            <div>
+              <h2>Contractor</h2>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="field" id="field-contractor">
+              <label for="f_contractor">Contractor <span class="req">*</span></label>
+              <select id="f_contractor" class="sw-select" required>
+                <option value="" disabled selected>Select contractor</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remarks Card -->
+        <div class="sw-card" id="card-remarks">
+          <div class="sw-card-head" style="--accent: var(--app-muted); --accent-light: #F1F3F2;">
+            <div class="ic"><i class="fa-solid fa-comment"></i></div>
+            <div>
+              <h2>Remarks</h2>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="field" id="field-remark">
+              <label for="f_remark">Remark <span class="opt">optional</span></label>
+              <textarea id="f_remark" class="sw-textarea" placeholder="Site conditions, hindrances, material status, instructions given, etc."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Admin Fields Container -->
+        <div id="admin-custom-fields-container"></div>
+
+        <!-- Form Actions -->
+        <div class="actions-row">
+          <button type="submit" class="sw-btn sw-btn-primary sw-btn-block" id="submitBtn">
+            <i class="fa-solid fa-check"></i> Save Daily Progress Report
+          </button>
+        </div>
+        <div class="actions-row">
+          <button type="button" class="sw-btn sw-btn-ghost sw-btn-block" id="cancelEditBtn" style="display:none;">
+            Cancel edit &amp; clear form
+          </button>
+        </div>
+        <div class="actions-row">
+          <button type="button" class="sw-btn sw-btn-ghost sw-btn-block" id="resetBtn">Clear form</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ================= LOG VIEW ================= -->
+    <section class="view" id="view-log">
+      <input type="hidden" id="filt_module" value="">
+      <div class="module-filter-bar" id="moduleFilterBar">
+        <button class="mod-chip active" data-mod="">All Modules</button>
+        <button class="mod-chip" data-mod="Pipe Laying"><i class="fa-solid fa-water"></i> Pipe Laying</button>
+        <button class="mod-chip" data-mod="Road Restoration"><i class="fa-solid fa-road"></i> Road Restoration</button>
+        <button class="mod-chip" data-mod="Hydro Test"><i class="fa-solid fa-gauge"></i> Hydro Test</button>
+      </div>
+
+      <div class="summary-strip" id="logSummary"></div>
+
+      <div class="filters">
+        <div class="field" style="margin-bottom:0;">
+          <label>From date</label>
+          <input type="date" id="filt_from" class="sw-input">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>To date</label>
+          <input type="date" id="filt_to" class="sw-input">
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Package No.</label>
+          <select id="filt_package" class="sw-select">
+            <option value="">All packages</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Zone</label>
+          <select id="filt_zone" class="sw-select">
+            <option value="">All zones</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>DMA</label>
+          <select id="filt_dma" class="sw-select">
+            <option value="">All DMAs</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Contractor</label>
+          <select id="filt_contractor" class="sw-select">
+            <option value="">All contractors</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Engineer</label>
+          <select id="filt_engineer" class="sw-select">
+            <option value="">All engineers</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Laying Work</label>
+          <select id="filt_worktype" class="sw-select">
+            <option value="">All laying work</option>
+            <option value="Distribution Main">Distribution Main</option>
+            <option value="Transmission Main">Transmission Main</option>
+            <option value="House Service Connection">House Service Connection</option>
+            <option value="Restoration">Restoration</option>
+          </select>
+        </div>
+        <div class="field full" style="margin-bottom:0;">
+          <label>Search (zone, DMA, remarks, stretch, contractor)</label>
+          <input type="text" id="filt_search" class="sw-input" placeholder="Type to filter...">
+        </div>
+      </div>
+
+      <div class="actions-row" style="margin-bottom:14px;">
+        <button class="sw-btn sw-btn-ghost sw-btn-sm" id="clearFiltersBtn">Clear filters</button>
+        <button class="sw-btn sw-btn-ghost sw-btn-sm" id="exportCsvBtn">
+          <i class="fa-solid fa-download"></i> Export CSV
+        </button>
+        <button class="sw-btn sw-btn-primary sw-btn-sm" id="exportExcelBtn">
+          <i class="fa-solid fa-file-excel"></i> Export Excel
+        </button>
+        <button class="sw-btn sw-btn-ghost sw-btn-sm" id="printReportBtn">
+          <i class="fa-solid fa-print"></i> Print / PDF
+        </button>
+        <button class="sw-btn sw-btn-ghost sw-btn-sm" id="loadHistoryBtn" title="Loads all earlier records from the database">
+          <i class="fa-solid fa-clock-rotate-left"></i> Load older records
+        </button>
+      </div>
+
+      <div class="log-wrap">
+        <table class="log" id="logTable">
+          <thead id="logTableHead">
+            <tr>
+              <th>S.No</th>
+              <th>Date</th>
+              <th>Package</th>
+              <th>Zone</th>
+              <th>DMA</th>
+              <th>Laying Work</th>
+              <th>Pipe Dia</th>
+              <th>Length</th>
+              <th>Contractor</th>
+              <th>By</th>
+              <th>Act</th>
+            </tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+        <div class="empty-state" id="logEmpty" style="display:none;">
+          <i class="fa-solid fa-list"></i>
+          <p>No reports match the current filters. Submit your first DPR from the New Entry tab.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= DASHBOARD VIEW ================= -->
+    <section class="view" id="view-dash">
+      <div class="grid-stats" id="dashStats"></div>
+
+      <div class="sw-card">
+        <div class="sw-card-body">
+          <div class="section-title" style="margin-top:0;">
+            <span>Pipe Laying Progress</span>
+            <span class="line"></span>
+          </div>
+          <div class="grid-stats" id="dashPipeLaying"></div>
+
+          <div class="section-title">
+            <span>Work Quantities</span>
+            <span class="line"></span>
+          </div>
+          <div class="grid-stats" id="dashWorkQty"></div>
+
+          <div class="section-title">
+            <span>HSC Materials</span>
+            <span class="line"></span>
+          </div>
+          <div class="grid-stats" id="dashHscMaterials"></div>
+
+          <div class="section-title">
+            <span>Resources Deployed</span>
+            <span class="line"></span>
+          </div>
+          <div class="grid-stats" id="dashResources"></div>
+        </div>
+      </div>
+
+      <div class="sw-card">
+        <div class="sw-card-body">
+          <div class="section-title" style="margin-top:0;">
+            <span>Daily Progress (metres)</span>
+            <span class="line"></span>
+          </div>
+          <div class="dash-chart-wrap">
+            <canvas id="chartDaily"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="sw-card">
+        <div class="sw-card-body">
+          <div class="section-title" style="margin-top:0;">
+            <span>Package Wise Progress</span>
+            <span class="line"></span>
+          </div>
+          <div id="byPackage"></div>
+        </div>
+      </div>
+
+      <div class="sw-card">
+        <div class="sw-card-body">
+          <div class="section-title" style="margin-top:0;">
+            <span>Zone Wise Progress</span>
+            <span class="line"></span>
+          </div>
+          <div id="byZone"></div>
+        </div>
+      </div>
+
+      <div class="sw-card">
+        <div class="sw-card-body">
+          <div class="section-title" style="margin-top:0;">
+            <span>DMA Wise Progress</span>
+            <span class="line"></span>
+          </div>
+          <div id="byDMA"></div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="dashboard-card">
+          <div class="dashboard-card-head">
+            <h3><i class="fa-solid fa-hard-hat"></i> Contractor Wise</h3>
+          </div>
+          <div class="dashboard-card-body">
+            <canvas id="chartContractor"></canvas>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="dashboard-card-head">
+            <h3><i class="fa-solid fa-layer-group"></i> Work Type Distribution</h3>
+          </div>
+          <div class="dashboard-card-body">
+            <canvas id="chartWorkType"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ENGINEERS VIEW ================= -->
+    <section class="view" id="view-engineers">
+      <!-- Add Engineer Card -->
+      <div class="sw-card">
+        <div class="sw-card-head" style="--accent: var(--app-teal); --accent-light: var(--app-teal-light);">
+          <div class="ic"><i class="fa-solid fa-user-plus"></i></div>
+          <div>
+            <h2>Add Engineer</h2>
+            <p class="hint">Create a field engineer profile with numeric PIN</p>
+          </div>
+        </div>
+        <div class="sw-card-body">
+          <form id="addEngineerForm">
+            <div class="add-eng-grid">
+              <div class="field">
+                <label for="ue_name">Full Name <span class="req">*</span></label>
+                <input type="text" id="ue_name" class="sw-input" placeholder="e.g. Rahul Sharma" required>
+              </div>
+              <div class="field">
+                <label for="ue_empId">Employee ID <span class="req">*</span></label>
+                <input type="text" id="ue_empId" class="sw-input" placeholder="e.g. ENG001" required>
+              </div>
+              <div class="field">
+                <label for="ue_loginPassword">Numeric PIN <span class="req">*</span> <span class="text-sm text-muted">(4-10 digits)</span></label>
+                <input type="password" id="ue_loginPassword" class="sw-input" placeholder="e.g. 123456" maxlength="10" inputmode="numeric" pattern="[0-9]*" required>
+              </div>
+              <div class="field">
+                <label for="ue_phone">Phone</label>
+                <input type="tel" id="ue_phone" class="sw-input" placeholder="Mobile number">
+              </div>
+              <div class="field">
+                <label for="ue_location">Location / Site</label>
+                <input type="text" id="ue_location" class="sw-input" placeholder="e.g. Dhalli Zone">
+              </div>
+              <div class="field">
+                <label for="ue_status">Status</label>
+                <select id="ue_status" class="sw-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="ue_notes">Notes</label>
+                <textarea id="ue_notes" class="sw-textarea" rows="2" placeholder="Any additional info..."></textarea>
+              </div>
+            </div>
+            <div class="login-error" id="ue_err" style="margin-top: 10px;"></div>
+            <div style="margin-top: 14px;">
+              <button type="submit" class="sw-btn sw-btn-primary sw-btn-block" id="ue_submit">
+                <i class="fa-solid fa-plus"></i> Create Engineer Profile
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Engineers Grid -->
+      <div class="sw-card">
+        <div class="sw-card-head" style="--accent: var(--app-slate); --accent-light: var(--app-slate-light);">
+          <div class="ic"><i class="fa-solid fa-users"></i></div>
+          <div>
+            <h2>Field Engineers</h2>
+            <p class="hint">Profiles with real-time DPR statistics</p>
+          </div>
+        </div>
+        <div class="sw-card-body">
+          <div class="eng-grid" id="engineerGrid">
+            <div class="eng-loading">
+              <i class="fa-solid fa-spinner fa-spin"></i>
+              <p>Loading engineers...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ADMIN VIEW (Field Editor) ================= -->
+    <section class="view" id="view-admin">
+      <!-- Admin Navigation Sub-menu -->
+      <div class="admin-nav">
+        <button class="admin-nav-btn active" data-admin-tab="field-editor">
+          <i class="fa-solid fa-list-check"></i> Field Editor
+        </button>
+        <button class="admin-nav-btn" data-admin-tab="dropdowns">
+          <i class="fa-solid fa-list-ul"></i> Dropdowns
+        </button>
+        <button class="admin-nav-btn" data-admin-tab="settings">
+          <i class="fa-solid fa-gear"></i> Settings
+        </button>
+      </div>
+
+      <!-- Field Editor Sub-view -->
+      <div class="admin-subview active" id="admin-field-editor">
+        <div class="sw-card">
+          <div class="sw-card-head" style="--accent: var(--app-teal); --accent-light: var(--app-teal-light);">
+            <div class="ic"><i class="fa-solid fa-plus-circle"></i></div>
+            <div>
+              <h2>Add New Field</h2>
+              <p class="hint">Create custom fields that appear in DPR forms</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <form id="addFieldForm">
+              <div class="row3">
+                <div class="field">
+                  <label for="af_label">Field Label <span class="req">*</span></label>
+                  <input type="text" id="af_label" class="sw-input" placeholder="e.g. Road Restoration" required>
+                </div>
+                <div class="field">
+                  <label for="af_fieldId">Field ID <span class="req">*</span></label>
+                  <input type="text" id="af_fieldId" class="sw-input" placeholder="e.g. roadRestoration" required>
+                  <p class="desc">Unique identifier, no spaces. Auto-generated from label.</p>
+                </div>
+                <div class="field">
+                  <label for="af_type">Field Type <span class="req">*</span></label>
+                  <select id="af_type" class="sw-select" required>
+                    <option value="" disabled selected>Select type</option>
+                    <option value="text">Text</option>
+                    <option value="number">Number</option>
+                    <option value="dropdown">Dropdown</option>
+                    <option value="date">Date</option>
+                    <option value="textarea">Textarea</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field" id="af_optionsRow" style="display:none;">
+                <label for="af_options">Dropdown Options <span class="req">*</span></label>
+                <textarea id="af_options" class="sw-textarea" rows="2" placeholder="Enter options separated by commas, e.g. Yes, No, Partial"></textarea>
+              </div>
+              <div class="row2">
+                <div class="field">
+                  <label for="af_workType">Show For Work Type <span class="opt">optional</span></label>
+                  <select id="af_workType" class="sw-select">
+                    <option value="">All work types</option>
+                    <option value="Pipe Laying">Pipe Laying</option>
+                    <option value="Hydro Test">Hydro Test</option>
+                    <option value="Road Restoration">Road Restoration</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="af_layingWork">Show For Laying Work <span class="opt">optional</span></label>
+                  <select id="af_layingWork" class="sw-select">
+                    <option value="">All laying work</option>
+                    <option value="Distribution Main">Distribution Main</option>
+                    <option value="Transmission Main">Transmission Main</option>
+                    <option value="House Service Connection">House Service Connection</option>
+                    <option value="Restoration">Restoration</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row2">
+                <div class="field">
+                  <label for="af_section">Section <span class="req">*</span></label>
+                  <select id="af_section" class="sw-select" required>
+                    <option value="work">Work Details</option>
+                    <option value="location">Location</option>
+                    <option value="pipe">Pipe Specification</option>
+                    <option value="restoration">Restoration</option>
+                    <option value="fittings">Fittings &amp; Meters</option>
+                    <option value="manpower">Manpower &amp; Time</option>
+                    <option value="contractor">Contractor</option>
+                    <option value="remarks">Remarks</option>
+                    <option value="custom">Custom Section</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="af_order">Display Order <span class="opt">optional</span></label>
+                  <input type="number" id="af_order" class="sw-input" min="0" step="1" placeholder="0">
+                </div>
+              </div>
+              <div class="row2" style="margin-top: 8px;">
+                <div class="field" style="display:flex; align-items:center; gap:8px;">
+                  <input type="checkbox" id="af_required" class="sw-checkbox">
+                  <label for="af_required" style="margin-bottom:0; cursor:pointer;">Mark as Required field</label>
+                </div>
+                <div style="text-align: right;">
+                  <button type="submit" class="sw-btn sw-btn-primary">
+                    <i class="fa-solid fa-plus"></i> Add Field
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Field List -->
+        <div class="sw-card">
+          <div class="sw-card-head" style="--accent: var(--app-sky); --accent-light: var(--app-sky-light);">
+            <div class="ic"><i class="fa-solid fa-layer-group"></i></div>
+            <div>
+              <h2>Field Definitions</h2>
+              <p class="hint">Drag to reorder, click to edit, toggle visibility</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div id="field-definitions-list">
+              <div class="field-list-loading">
+                <i class="fa-solid fa-spinner fa-spin"></i> Loading field definitions...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Sub-view -->
+      <!-- Dropdown Options Sub-view -->
+      <div class="admin-subview" id="admin-dropdowns">
+        <div class="sw-card">
+          <div class="sw-card-head" style="--accent: var(--app-teal); --accent-light: var(--app-teal-light);">
+            <div class="ic"><i class="fa-solid fa-list-ul"></i></div>
+            <div>
+              <h2>Dropdown Options</h2>
+              <p class="hint">Add, rename or remove the choices in the form's dropdowns. Changes apply for everyone.</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div id="dropdown-manager"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-subview" id="admin-settings">
+        <div class="sw-card">
+          <div class="sw-card-head" style="--accent: var(--app-amber); --accent-light: var(--app-amber-light);">
+            <div class="ic"><i class="fa-solid fa-gear"></i></div>
+            <div>
+              <h2>System Settings</h2>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="field">
+              <label>Auto-increment S.No Start</label>
+              <input type="number" id="setting_sno_start" class="sw-input" value="1" min="1">
+              <p class="desc">Starting serial number for new DPR entries.</p>
+            </div>
+            <div class="field" style="margin-top: 14px;">
+              <label>Default Entries Per Page (Reports)</label>
+              <input type="number" id="setting_page_size" class="sw-input" value="50" min="10" max="500">
+            </div>
+            <div style="margin-top: 14px;">
+              <button class="sw-btn sw-btn-primary" id="saveSettingsBtn">
+                <i class="fa-solid fa-save"></i> Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      Data stored securely in Firebase &middot; Shimla 24x7 Water Supply Project
+    </footer>
+  </div>
+</div>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script>
+/* Last-resort failsafe: if the app's module scripts fail to load or run,
+   still leave the loading screen and show the login screen after a delay. */
+(function () {
+  setTimeout(function () {
+    if (window.__appReady) return; // scripts loaded -> they handle the screen
+    try {
+      var ls = document.getElementById('loading-screen');
+      var login = document.getElementById('login-screen');
+      if (login && ls && getComputedStyle(ls).display !== 'none') {
+        ls.style.display = 'none';
+        login.style.display = 'block';
+      }
+    } catch (e) {}
+  }, 9000);
+})();
+</script>
+<script type="module" src="js/firebase.js?v=16"></script>
+<script type="module" src="js/auth.js?v=16"></script>
+<script type="module" src="js/app.js?v=16"></script>
+<script type="module" src="js/dpr.js?v=16"></script>
+<script type="module" src="js/dashboard.js?v=16"></script>
+<script type="module" src="js/engineers.js?v=16"></script>
+<script type="module" src="js/reports.js?v=16"></script>
+<script type="module" src="js/field-editor.js?v=16"></script>
+<script type="module" src="js/dropdowns.js?v=16"></script>
+<script type="module" src="js/export.js?v=16"></script>
+<script type="module" src="js/menu.js?v=16"></script>
+
+<!-- ==================== PWA: service worker + install ==================== -->
+<script>
+(function () {
+  // Register the service worker (offline cache + faster repeat loads)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function (e) {
+        console.warn('Service worker registration failed:', e);
+      });
+    });
+  }
+
+  var deferredPrompt = null;
+
+  function installButtons() {
+    return Array.prototype.slice.call(document.querySelectorAll('[data-install-btn]'));
+  }
+  function showInstall() { installButtons().forEach(function (b) { b.hidden = false; }); }
+  function hideInstall() { installButtons().forEach(function (b) { b.hidden = true; }); }
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(window.navigator.userAgent) && !window.MSStream;
+  }
+
+  // Chrome / Edge / Android: capture the native install prompt
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    showInstall();
+  });
+  window.addEventListener('appinstalled', function () {
+    deferredPrompt = null;
+    hideInstall();
+  });
+
+  function openIosModal() {
+    var m = document.getElementById('modal-ios-install');
+    if (m) { m.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  }
+  function closeIosModal() {
+    var m = document.getElementById('modal-ios-install');
+    if (m) { m.classList.remove('open'); document.body.style.overflow = ''; }
+  }
+
+  document.addEventListener('click', function (ev) {
+    var t = ev.target;
+    var btn = t.closest ? t.closest('[data-install-btn]') : null;
+    if (btn) {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function () { deferredPrompt = null; hideInstall(); });
+      } else if (isIOS()) {
+        openIosModal();
+      }
+      return;
+    }
+    if (t.closest && (t.closest('#ios-install-ok') || t.closest('#ios-install-close') ||
+        (t.id === 'modal-ios-install'))) {
+      closeIosModal();
+    }
+  });
+
+  // iOS has no beforeinstallprompt — surface the manual install hint instead
+  if (isIOS() && !isStandalone()) {
+    if (document.readyState !== 'loading') showInstall();
+    else document.addEventListener('DOMContentLoaded', showInstall);
+  }
+})();
+</script>
+
+</body>
+</html>
