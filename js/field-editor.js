@@ -3,9 +3,9 @@
    Admin Field Management | Drag & Drop | Dynamic Form Generation
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=15';
-import { State } from './auth.js?v=15';
-import { AppUtils } from './app.js?v=15';
+import { DataService, COLLECTIONS } from './firebase.js?v=16';
+import { State } from './auth.js?v=16';
+import { AppUtils } from './app.js?v=16';
 
 /* =============================================
    DEFAULT FIELD DEFINITIONS
@@ -22,15 +22,22 @@ const DEFAULT_FIELD_DEFS = [
   { fieldId: 'stretch', label: 'Transmission Stretch Name', type: 'text', required: false, system: true, section: 'location', order: 3, visible: true, layingWork: 'Transmission Main' },
   { fieldId: 'pipeDia', label: 'Pipe Dia', type: 'dropdown', required: true, system: true, section: 'pipe', order: 0, visible: true, workType: 'Pipe Laying' },
   { fieldId: 'layingLength', label: 'Laying Length', type: 'number', required: true, system: true, section: 'pipe', order: 1, visible: true },
+  { fieldId: 'joints', label: 'Number of Joints', type: 'number', required: true, system: true, section: 'pipe', order: 2, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'excavLength', label: 'Excavation Length', type: 'number', required: true, system: true, section: 'excavation', order: 0, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'excavWidth', label: 'Excavation Width', type: 'number', required: true, system: true, section: 'excavation', order: 1, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'excavDepth', label: 'Excavation Depth', type: 'number', required: true, system: true, section: 'excavation', order: 2, visible: true, workType: 'Pipe Laying' },
   { fieldId: 'restoredLength', label: 'Restored Length', type: 'number', required: true, system: true, section: 'restoration', order: 0, visible: true, workType: 'Road Restoration' },
   { fieldId: 'restoredWidth', label: 'Restored Width', type: 'number', required: true, system: true, section: 'restoration', order: 1, visible: true, workType: 'Road Restoration' },
-  { fieldId: 'ferrule', label: 'Ferrule', type: 'number', required: false, system: true, section: 'fittings', order: 0, visible: true },
-  { fieldId: 'ballValve', label: 'Ball Valve', type: 'number', required: false, system: true, section: 'fittings', order: 1, visible: true },
-  { fieldId: 'meterBox', label: 'Meter Box', type: 'number', required: false, system: true, section: 'fittings', order: 2, visible: true },
-  { fieldId: 'waterMeter', label: 'Water Meter', type: 'number', required: false, system: true, section: 'fittings', order: 3, visible: true },
+  { fieldId: 'ferrule', label: 'Ferrule', type: 'number', required: false, system: true, section: 'fittings', order: 0, visible: true, layingWork: 'House Service Connection' },
+  { fieldId: 'ballValve', label: 'Ball Valve', type: 'number', required: false, system: true, section: 'fittings', order: 1, visible: true, layingWork: 'House Service Connection' },
+  { fieldId: 'meterBox', label: 'Meter Box', type: 'number', required: false, system: true, section: 'fittings', order: 2, visible: true, layingWork: 'House Service Connection' },
+  { fieldId: 'waterMeter', label: 'Water Meter', type: 'number', required: false, system: true, section: 'fittings', order: 3, visible: true, layingWork: 'House Service Connection' },
   { fieldId: 'noOfTeam', label: 'No of Team', type: 'number', required: true, system: true, section: 'manpower', order: 0, visible: true },
-  { fieldId: 'manpower', label: 'Total Working Manpower', type: 'number', required: true, system: true, section: 'manpower', order: 1, visible: true },
-  { fieldId: 'workTime', label: 'Work Time', type: 'number', required: true, system: true, section: 'manpower', order: 2, visible: true },
+  { fieldId: 'welder', label: 'Welder (Skilled)', type: 'number', required: true, system: true, section: 'manpower', order: 1, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'fitter', label: 'Fitter (Skilled)', type: 'number', required: true, system: true, section: 'manpower', order: 2, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'unskilledLabour', label: 'Unskilled Labour', type: 'number', required: true, system: true, section: 'manpower', order: 3, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'manpower', label: 'Total Working Manpower', type: 'number', required: true, system: true, section: 'manpower', order: 4, visible: true },
+  { fieldId: 'workTime', label: 'Work Time', type: 'number', required: true, system: true, section: 'manpower', order: 5, visible: true },
   { fieldId: 'contractor', label: 'Contractor', type: 'dropdown', required: true, system: true, section: 'contractor', order: 0, visible: true },
   { fieldId: 'remark', label: 'Remark', type: 'textarea', required: false, system: true, section: 'remarks', order: 0, visible: true }
 ];

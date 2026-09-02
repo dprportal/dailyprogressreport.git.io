@@ -3,7 +3,7 @@
    App-shell caching for speed & offline.
    Firebase Auth/Firestore traffic is never intercepted.
    ============================================= */
-const CACHE = 'dpr-shell-v2';
+const CACHE = 'dpr-shell-v3';
 
 const SHELL = [
   './',

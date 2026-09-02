@@ -3,9 +3,9 @@
    Dynamic Form | Field Visibility | CRUD | S.No Auto-increment
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=15';
-import { State } from './auth.js?v=15';
-import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=15';
+import { DataService, COLLECTIONS } from './firebase.js?v=16';
+import { State } from './auth.js?v=16';
+import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=16';
 
 /* =============================================
    FIELD VISIBILITY CONFIG  (driven by WORK TYPE)
@@ -14,15 +14,15 @@ import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=15';
    ============================================= */
 const WORKTYPE_CONFIG = {
   'Pipe Laying': {
-    'card-location': true, 'card-pipe': true, 'card-restoration': false, 'card-hydro': false,
+    'card-location': true, 'card-pipe': true, 'card-excavation': true, 'card-restoration': false, 'card-hydro': false,
     'card-fittings': true, 'card-manpower': true, 'card-contractor': true, 'card-remarks': true
   },
   'Hydro Test': {
-    'card-location': true, 'card-pipe': true, 'card-restoration': false, 'card-hydro': true,
+    'card-location': true, 'card-pipe': true, 'card-excavation': false, 'card-restoration': false, 'card-hydro': true,
     'card-fittings': false, 'card-manpower': true, 'card-contractor': true, 'card-remarks': true
   },
   'Road Restoration': {
-    'card-location': true, 'card-pipe': false, 'card-restoration': true, 'card-hydro': false,
+    'card-location': true, 'card-pipe': false, 'card-excavation': false, 'card-restoration': true, 'card-hydro': false,
     'card-fittings': false, 'card-manpower': true, 'card-contractor': true, 'card-remarks': true
   }
 };
@@ -30,11 +30,12 @@ const WORKTYPE_CONFIG = {
 // Inputs that live inside each card (f_zone / f_dma are owned by the cascade, f_stretch handled separately)
 const CARD_INPUTS = {
   'card-location': ['f_package', 'f_zone', 'f_dma'],
-  'card-pipe': ['f_pipeDia', 'f_layingLength'],
+  'card-pipe': ['f_pipeDia', 'f_layingLength', 'f_joints'],
+  'card-excavation': ['f_excavLength', 'f_excavWidth', 'f_excavDepth', 'f_excavVolume'],
   'card-restoration': ['f_restoredLength', 'f_restoredWidth', 'f_surfaceType', 'f_restoredArea'],
   'card-hydro': ['f_testedLength', 'f_testPressure', 'f_startTime', 'f_endTime', 'f_testResult'],
   'card-fittings': ['f_ferrule', 'f_ballValve', 'f_meterBox', 'f_waterMeter'],
-  'card-manpower': ['f_noOfTeam', 'f_manpower', 'f_workTime'],
+  'card-manpower': ['f_noOfTeam', 'f_welder', 'f_fitter', 'f_unskilledLabour', 'f_manpower', 'f_workTime'],
   'card-contractor': ['f_contractor'],
   'card-remarks': ['f_remark']
 };
@@ -42,10 +43,11 @@ const CARD_INPUTS = {
 // Fields that are required when their card is visible
 const BASE_REQUIRED = new Set([
   'f_package', 'f_zone', 'f_dma',
-  'f_pipeDia', 'f_layingLength',
+  'f_pipeDia', 'f_layingLength', 'f_joints',
+  'f_excavLength', 'f_excavWidth', 'f_excavDepth',
   'f_restoredLength', 'f_restoredWidth', 'f_surfaceType',
   'f_testedLength', 'f_testPressure', 'f_startTime', 'f_endTime', 'f_testResult',
-  'f_noOfTeam', 'f_manpower', 'f_workTime',
+  'f_noOfTeam', 'f_welder', 'f_fitter', 'f_unskilledLabour', 'f_manpower', 'f_workTime',
   'f_contractor'
 ]);
 
@@ -58,18 +60,22 @@ const CASCADE_FIELDS = new Set(['f_zone', 'f_dma']);
    ============================================= */
 const SYS_FIELD_WRAP = {
   package: 'field-package', zone: 'field-zone', dma: 'field-dma', stretch: 'field-stretch',
-  pipeDia: 'field-pipeDia', layingLength: 'field-layingLength',
+  pipeDia: 'field-pipeDia', layingLength: 'field-layingLength', joints: 'field-joints',
+  excavLength: 'field-excavLength', excavWidth: 'field-excavWidth', excavDepth: 'field-excavDepth',
   restoredLength: 'field-restoredLength', restoredWidth: 'field-restoredWidth',
   ferrule: 'field-ferrule', ballValve: 'field-ballValve', meterBox: 'field-meterBox', waterMeter: 'field-waterMeter',
-  noOfTeam: 'field-noOfTeam', manpower: 'field-manpower', workTime: 'field-workTime',
+  noOfTeam: 'field-noOfTeam', welder: 'field-welder', fitter: 'field-fitter', unskilledLabour: 'field-unskilledLabour',
+  manpower: 'field-manpower', workTime: 'field-workTime',
   contractor: 'field-contractor', remark: 'field-remark'
 };
 const SYS_FIELD_INPUT = {
   package: 'f_package', zone: 'f_zone', dma: 'f_dma', stretch: 'f_stretch',
-  pipeDia: 'f_pipeDia', layingLength: 'f_layingLength',
+  pipeDia: 'f_pipeDia', layingLength: 'f_layingLength', joints: 'f_joints',
+  excavLength: 'f_excavLength', excavWidth: 'f_excavWidth', excavDepth: 'f_excavDepth',
   restoredLength: 'f_restoredLength', restoredWidth: 'f_restoredWidth',
   ferrule: 'f_ferrule', ballValve: 'f_ballValve', meterBox: 'f_meterBox', waterMeter: 'f_waterMeter',
-  noOfTeam: 'f_noOfTeam', manpower: 'f_manpower', workTime: 'f_workTime',
+  noOfTeam: 'f_noOfTeam', welder: 'f_welder', fitter: 'f_fitter', unskilledLabour: 'f_unskilledLabour',
+  manpower: 'f_manpower', workTime: 'f_workTime',
   contractor: 'f_contractor', remark: 'f_remark'
 };
 
@@ -245,6 +251,17 @@ function updateFieldVisibility() {
     stretchReqMark.innerHTML = showStretch ? '*' : 'optional';
     stretchReqMark.className = showStretch ? 'req' : 'opt';
   }
+
+  // Fittings & Meters (Ferrule / Ball Valve / Meter Box / Water Meter) — HSC only
+  const showFittings = locationShown && layingWork === 'House Service Connection';
+  const fittingsCard = document.getElementById('card-fittings');
+  if (fittingsCard) fittingsCard.classList.toggle('hidden', !showFittings);
+  (CARD_INPUTS['card-fittings'] || []).forEach(inputId => {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    el.disabled = !showFittings;
+    if (!showFittings) el.value = '';
+  });
 
   // Custom admin fields (filtered by work type + laying work)
   updateCustomFieldsVisibility(workType, layingWork);
@@ -439,6 +456,13 @@ function gatherFormData() {
   // Pipe specification
   if (enabled('f_pipeDia')) data.pipeDia = text('f_pipeDia');
   if (enabled('f_layingLength')) data.layingLength = num('f_layingLength');
+  if (enabled('f_joints')) data.joints = num('f_joints');
+
+  // Excavation
+  if (enabled('f_excavLength')) data.excavLength = num('f_excavLength');
+  if (enabled('f_excavWidth')) data.excavWidth = num('f_excavWidth');
+  if (enabled('f_excavDepth')) data.excavDepth = num('f_excavDepth');
+  if (enabled('f_excavVolume')) data.excavVolume = num('f_excavVolume');
 
   // Road restoration
   if (enabled('f_restoredLength')) data.restoredLength = num('f_restoredLength');
@@ -461,6 +485,9 @@ function gatherFormData() {
 
   // Manpower & time
   if (enabled('f_noOfTeam')) data.noOfTeam = num('f_noOfTeam');
+  if (enabled('f_welder')) data.welder = num('f_welder');
+  if (enabled('f_fitter')) data.fitter = num('f_fitter');
+  if (enabled('f_unskilledLabour')) data.unskilledLabour = num('f_unskilledLabour');
   if (enabled('f_manpower')) data.manpower = num('f_manpower');
   if (enabled('f_workTime')) data.workTime = num('f_workTime');
 
@@ -499,6 +526,16 @@ async function onSubmit(e) {
       if (State.currentRole !== 'admin' && existing && existing.createdBy !== (State.currentUser?.uid || State.currentEngineer?.id)) {
         throw Object.assign(new Error('Not permitted'), { code: 'perm-denied' });
       }
+
+      // Audit trail: who last modified this entry, and when
+      if (State.currentRole === 'engineer' && State.currentEngineer) {
+        record.lastModifiedBy = State.currentEngineer.id;
+        record.lastModifiedByName = State.currentEngineer.name;
+      } else {
+        record.lastModifiedBy = State.currentUser?.uid || 'admin';
+        record.lastModifiedByName = State.currentUser?.email?.split('@')[0] || 'Admin';
+      }
+      record.lastModifiedAt = new Date().toISOString();
 
       await DataService.update(COLLECTIONS.DPR, State.editingRecordId, record);
       const idx = State.dprs.findIndex(r => r.id === State.editingRecordId);
@@ -577,6 +614,13 @@ async function loadRecordIntoForm(record) {
   // Pipe fields
   if (record.pipeDia) document.getElementById('f_pipeDia').value = record.pipeDia;
   if (record.layingLength !== undefined) document.getElementById('f_layingLength').value = record.layingLength;
+  if (record.joints !== undefined) document.getElementById('f_joints').value = record.joints;
+
+  // Excavation
+  if (record.excavLength !== undefined) document.getElementById('f_excavLength').value = record.excavLength;
+  if (record.excavWidth !== undefined) document.getElementById('f_excavWidth').value = record.excavWidth;
+  if (record.excavDepth !== undefined) document.getElementById('f_excavDepth').value = record.excavDepth;
+  if (record.excavVolume !== undefined) document.getElementById('f_excavVolume').value = record.excavVolume;
 
   // Restoration fields
   if (record.restoredLength !== undefined) document.getElementById('f_restoredLength').value = record.restoredLength;
@@ -602,6 +646,9 @@ async function loadRecordIntoForm(record) {
 
   // Manpower
   if (record.noOfTeam !== undefined) document.getElementById('f_noOfTeam').value = record.noOfTeam;
+  if (record.welder !== undefined) document.getElementById('f_welder').value = record.welder;
+  if (record.fitter !== undefined) document.getElementById('f_fitter').value = record.fitter;
+  if (record.unskilledLabour !== undefined) document.getElementById('f_unskilledLabour').value = record.unskilledLabour;
   if (record.manpower !== undefined) document.getElementById('f_manpower').value = record.manpower;
   if (record.workTime !== undefined) document.getElementById('f_workTime').value = record.workTime;
 
@@ -668,6 +715,11 @@ function softReset() {
   // Keep date, reset other fields
   document.getElementById('f_pipeDia').selectedIndex = 0;
   document.getElementById('f_layingLength').value = '';
+  document.getElementById('f_joints').value = '';
+  document.getElementById('f_excavLength').value = '';
+  document.getElementById('f_excavWidth').value = '';
+  document.getElementById('f_excavDepth').value = '';
+  document.getElementById('f_excavVolume').value = '';
   document.getElementById('f_restoredLength').value = '';
   document.getElementById('f_restoredWidth').value = '';
   const _sa = document.getElementById('f_restoredArea'); if (_sa) _sa.value = '';
@@ -683,6 +735,9 @@ function softReset() {
   document.getElementById('f_waterMeter').value = '';
   document.getElementById('f_stretch').value = '';
   document.getElementById('f_noOfTeam').value = '';
+  document.getElementById('f_welder').value = '';
+  document.getElementById('f_fitter').value = '';
+  document.getElementById('f_unskilledLabour').value = '';
   document.getElementById('f_manpower').value = '';
   document.getElementById('f_workTime').value = '';
   document.getElementById('f_remark').value = '';
@@ -735,6 +790,28 @@ function setupLayingWorkHandler() {
   };
   if (rl) rl.addEventListener('input', recalcArea);
   if (rw) rw.addEventListener('input', recalcArea);
+
+  // Excavation Volume = Length × Width × Depth (auto, read-only)
+  const el_ = document.getElementById('f_excavLength');
+  const ew_ = document.getElementById('f_excavWidth');
+  const ed_ = document.getElementById('f_excavDepth');
+  const recalcExcavVolume = () => {
+    const vol = AppUtils.cleanNum(el_ ? el_.value : 0) * AppUtils.cleanNum(ew_ ? ew_.value : 0) * AppUtils.cleanNum(ed_ ? ed_.value : 0);
+    const out = document.getElementById('f_excavVolume');
+    if (out) out.value = vol ? vol.toFixed(2) : '';
+  };
+  [el_, ew_, ed_].forEach(el => { if (el) el.addEventListener('input', recalcExcavVolume); });
+
+  // Total Working Manpower = Welder + Fitter + Unskilled Labour (auto, read-only)
+  const wd_ = document.getElementById('f_welder');
+  const ft_ = document.getElementById('f_fitter');
+  const ul_ = document.getElementById('f_unskilledLabour');
+  const recalcManpower = () => {
+    const total = AppUtils.cleanNum(wd_ ? wd_.value : 0) + AppUtils.cleanNum(ft_ ? ft_.value : 0) + AppUtils.cleanNum(ul_ ? ul_.value : 0);
+    const out = document.getElementById('f_manpower');
+    if (out) out.value = total;
+  };
+  [wd_, ft_, ul_].forEach(el => { if (el) el.addEventListener('input', recalcManpower); });
 }
 
 /* =============================================
@@ -766,7 +843,9 @@ async function init() {
   if (resetBtn) resetBtn.addEventListener('click', fullReset);
 
   // Numeric guards
-  ["f_layingLength", "f_restoredLength", "f_restoredWidth", "f_noOfTeam", "f_manpower", "f_workTime", "f_ferrule", "f_ballValve", "f_meterBox", "f_waterMeter"].forEach(id => {
+  ["f_layingLength", "f_joints", "f_excavLength", "f_excavWidth", "f_excavDepth",
+   "f_restoredLength", "f_restoredWidth", "f_noOfTeam", "f_welder", "f_fitter", "f_unskilledLabour",
+   "f_workTime", "f_ferrule", "f_ballValve", "f_meterBox", "f_waterMeter"].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener("input", AppUtils.clampNonNegative);

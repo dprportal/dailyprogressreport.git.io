@@ -3,8 +3,8 @@
    CSV Export | Excel Export with SheetJS | Dynamic Columns
    ============================================= */
 
-import { State } from './auth.js?v=15';
-import { AppUtils } from './app.js?v=15';
+import { State } from './auth.js?v=16';
+import { AppUtils } from './app.js?v=16';
 
 /* =============================================
    GET FILTERED DATA
@@ -101,6 +101,15 @@ function getColumnDefinitions() {
     columns.push({ key: 'layingLength', label: 'Laying Length (m)', width: 16 });
   }
 
+  // Joints & Excavation (Pipe Laying only)
+  if (allMods || mod === 'Pipe Laying') {
+    columns.push({ key: 'joints', label: 'No. of Joints', width: 12 });
+    columns.push({ key: 'excavLength', label: 'Excavation Length (m)', width: 16 });
+    columns.push({ key: 'excavWidth', label: 'Excavation Width (m)', width: 16 });
+    columns.push({ key: 'excavDepth', label: 'Excavation Depth (m)', width: 16 });
+    columns.push({ key: 'excavVolume', label: 'Excavation Volume (m³)', width: 18 });
+  }
+
   // Road restoration fields (Road Restoration only)
   const hasRestoration = fieldDefs.find(f => f.fieldId === 'restoredLength');
   if (hasRestoration && hasRestoration.visible !== false && (allMods || mod === 'Road Restoration')) {
@@ -132,6 +141,11 @@ function getColumnDefinitions() {
   const hasManpower = fieldDefs.find(f => f.fieldId === 'noOfTeam');
   if (hasManpower && hasManpower.visible !== false) {
     columns.push({ key: 'noOfTeam', label: 'No of Team', width: 11 });
+    if (allMods || mod === 'Pipe Laying') {
+      columns.push({ key: 'welder', label: 'Welder', width: 10 });
+      columns.push({ key: 'fitter', label: 'Fitter', width: 10 });
+      columns.push({ key: 'unskilledLabour', label: 'Unskilled Labour', width: 14 });
+    }
     columns.push({ key: 'manpower', label: 'Manpower', width: 11 });
     columns.push({ key: 'workTime', label: 'Work Time (hrs)', width: 14 });
   }
@@ -167,10 +181,12 @@ function getColumnDefinitions() {
   const FIELDID_BY_COLKEY = {
     sno: 'sno', date: 'date', month: 'month', workType: 'worktype', layingWork: 'layingWork',
     packageNo: 'package', zoneName: 'zone', dma: 'dma', stretch: 'stretch',
-    pipeDia: 'pipeDia', layingLength: 'layingLength',
+    pipeDia: 'pipeDia', layingLength: 'layingLength', joints: 'joints',
+    excavLength: 'excavLength', excavWidth: 'excavWidth', excavDepth: 'excavDepth', excavVolume: 'excavVolume',
     restoredLength: 'restoredLength', restoredWidth: 'restoredWidth',
     ferrule: 'ferrule', ballValve: 'ballValve', meterBox: 'meterBox', waterMeter: 'waterMeter',
-    noOfTeam: 'noOfTeam', manpower: 'manpower', workTime: 'workTime',
+    noOfTeam: 'noOfTeam', welder: 'welder', fitter: 'fitter', unskilledLabour: 'unskilledLabour',
+    manpower: 'manpower', workTime: 'workTime',
     contractor: 'contractor', remark: 'remark'
   };
   columns.forEach(c => {

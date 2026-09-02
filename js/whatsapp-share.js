@@ -76,6 +76,7 @@ export function buildDprMessage(r) {
   section([
     val('Pipe Dia', r.pipeDia, isNumericLike(r.pipeDia) ? 'mm' : ''),
     val('Laying Length', r.layingLength, 'm'),
+    val('Joints', r.joints),
     val('Restored Length', r.restoredLength, 'm'),
     val('Restored Width', r.restoredWidth, 'm'),
     val('Restored Area', r.restoredArea, 'sqm'),
@@ -91,9 +92,20 @@ export function buildDprMessage(r) {
     val('Water Meter', r.waterMeter),
   ]);
 
+  // Excavation
+  section([
+    val('Excavation Length', r.excavLength, 'm'),
+    val('Excavation Width', r.excavWidth, 'm'),
+    val('Excavation Depth', r.excavDepth, 'm'),
+    val('Excavation Volume', r.excavVolume, 'm³'),
+  ]);
+
   // Manpower & time
   section([
     val('Teams', r.noOfTeam),
+    val('Welder', r.welder),
+    val('Fitter', r.fitter),
+    val('Unskilled Labour', r.unskilledLabour),
     val('Manpower', r.manpower),
     val('Work Time', r.workTime, 'hrs'),
   ]);

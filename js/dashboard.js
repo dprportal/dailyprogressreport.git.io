@@ -3,8 +3,8 @@
    Statistics | Chart.js Charts | Progress Bars
    ============================================= */
 
-import { State } from './auth.js?v=15';
-import { AppUtils } from './app.js?v=15';
+import { State } from './auth.js?v=16';
+import { AppUtils } from './app.js?v=16';
 
 /* =============================================
    CHART INSTANCES
@@ -296,6 +296,64 @@ function renderWorkTypeChart() {
 }
 
 /* =============================================
+   PIPE LAYING SUMMARY CARDS
+   (Distribution / Transmission / HSC progress, excavation,
+   joints, HSC materials, and manpower resources)
+   ============================================= */
+function renderPipeLayingSummary() {
+  const recs = (State.dprs || []).filter(r => r.workType === 'Pipe Laying');
+  const fmt = v => Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const sumBy = (pred, key) => recs.filter(pred).reduce((s, r) => s + (parseFloat(r[key]) || 0), 0);
+
+  const distM = sumBy(r => r.layingWork === 'Distribution Main', 'layingLength');
+  const transM = sumBy(r => r.layingWork === 'Transmission Main', 'layingLength');
+  const hscM = sumBy(r => r.layingWork === 'House Service Connection', 'layingLength');
+  const totalM = recs.reduce((s, r) => s + (parseFloat(r.layingLength) || 0), 0);
+
+  const cards = (containerId, items) => {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = items.map(([l, v]) => `
+      <div class="dstat">
+        <div class="v">${AppUtils.esc(v)}</div>
+        <div class="l">${AppUtils.esc(l)}</div>
+      </div>
+    `).join('');
+  };
+
+  cards('dashPipeLaying', [
+    ['Distribution Main (m)', fmt(distM)],
+    ['Transmission Main (m)', fmt(transM)],
+    ['HSC (m)', fmt(hscM)],
+    ['Total Pipe Laying (m)', fmt(totalM)]
+  ]);
+
+  const totalJoints = recs.reduce((s, r) => s + (parseInt(r.joints) || 0), 0);
+  const totalExcav = recs.reduce((s, r) => s + (parseFloat(r.excavVolume) || 0), 0);
+  cards('dashWorkQty', [
+    ['Total Joints', totalJoints.toLocaleString()],
+    ['Total Excavation (m³)', fmt(totalExcav)]
+  ]);
+
+  const hscRecs = recs.filter(r => r.layingWork === 'House Service Connection');
+  const sumField = (list, key) => list.reduce((s, r) => s + (parseFloat(r[key]) || 0), 0);
+  cards('dashHscMaterials', [
+    ['Total Ferrules', sumField(hscRecs, 'ferrule').toLocaleString()],
+    ['Total Ball Valves', sumField(hscRecs, 'ballValve').toLocaleString()],
+    ['Total Meter Boxes', sumField(hscRecs, 'meterBox').toLocaleString()],
+    ['Total Water Meters', sumField(hscRecs, 'waterMeter').toLocaleString()]
+  ]);
+
+  cards('dashResources', [
+    ['Total Teams', sumField(recs, 'noOfTeam').toLocaleString()],
+    ['Total Welders', sumField(recs, 'welder').toLocaleString()],
+    ['Total Fitters', sumField(recs, 'fitter').toLocaleString()],
+    ['Total Unskilled Labour', sumField(recs, 'unskilledLabour').toLocaleString()],
+    ['Total Working Manpower', sumField(recs, 'manpower').toLocaleString()]
+  ]);
+}
+
+/* =============================================
    RENDER ALL DASHBOARD
    ============================================= */
 function render() {
@@ -303,6 +361,9 @@ function render() {
 
   // Stats cards (metres)
   renderStats();
+
+  // Pipe laying progress cards (Distribution / Transmission / HSC, excavation, resources)
+  renderPipeLayingSummary();
 
   // Daily progress in metres (headline chart)
   renderDailyChart();
