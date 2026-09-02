@@ -1,0 +1,60 @@
+rules_version = '2';
+
+// ============================================================
+//  Firestore security rules for the DPR Management app.
+//
+//  Auth model:
+//   - Admins sign in with Firebase Email/Password.
+//   - Field engineers are NOT Firebase-authenticated; they pick a
+//     profile and enter a numeric PIN that is checked against the
+//     `engineers` collection on the client.
+//
+//  Therefore engineers must be able to read `engineers` and
+//  read/write `dprEntries` while unauthenticated. Only signed-in
+//  admins can manage engineers, field definitions, settings and
+//  delete DPR entries.
+//
+//  This is a pragmatic ruleset for an internal tool. See README for
+//  how to harden it (e.g. move engineers onto real Firebase Auth).
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Admin role docs — each admin can read/write only their own doc.
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Engineer profiles — public read (picker + PIN check); admin-only write.
+    match /engineers/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // DPR entries — engineers submit without Firebase auth; only admins edit/delete.
+    match /dprEntries/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSignedIn();
+    }
+
+    // Field definitions (dynamic form schema) — public read; admin-only write.
+    match /fieldDefinitions/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // App settings — public read; admin-only write.
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Everything else is denied by default.
+  }
+}

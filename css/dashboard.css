@@ -1,0 +1,214 @@
+/* =============================================
+   DASHBOARD STYLES
+   Stats | Charts | Progress Bars | Cards
+   ============================================= */
+
+/* Stats Grid */
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 480px) {
+  .grid-stats { grid-template-columns: repeat(4, 1fr); }
+}
+
+.dstat {
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: var(--app-shadow);
+}
+.dstat .v {
+  font-family: var(--font-mono);
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--app-teal-dark);
+}
+.dstat .l {
+  font-size: 11px;
+  color: var(--app-muted);
+  margin-top: 3px;
+}
+
+/* Dashboard Grid Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  box-shadow: var(--app-shadow);
+  overflow: hidden;
+}
+
+.dashboard-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--app-line);
+  background: linear-gradient(135deg, var(--app-teal-light), rgba(227,241,238,0.5));
+}
+.dashboard-card-head h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--app-ink);
+}
+.dashboard-card-head i { color: var(--app-teal); font-size: 14px; }
+
+.dashboard-card-body {
+  padding: 16px;
+}
+
+/* Big Stat Display */
+.big-stat {
+  font-family: var(--font-mono);
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--app-teal-dark);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.big-stat-label {
+  text-align: center;
+  font-size: 12px;
+  color: var(--app-muted);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Progress Bars */
+.bar-row {
+  display: grid;
+  grid-template-columns: 118px 1fr 50px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.bar-row .lbl {
+  font-size: 12px;
+  color: var(--app-ink);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar-track {
+  height: 9px;
+  background: var(--app-slate-light);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: var(--app-teal);
+  transition: width 0.6s ease;
+}
+
+.bar-row .val {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--app-muted);
+  text-align: right;
+}
+
+/* Section Titles */
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--app-ink);
+  margin: 22px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title .line {
+  flex: 1;
+  height: 1px;
+  background: var(--app-line);
+}
+
+/* Chart Containers */
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Loading State for Charts */
+.chart-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--app-muted);
+  font-size: 13px;
+}
+.chart-loading i {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--app-muted-2);
+}
+
+/* Dashboard Responsive */
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .big-stat {
+    font-size: 32px;
+  }
+
+  .bar-row {
+    grid-template-columns: 90px 1fr 45px;
+    gap: 6px;
+  }
+
+  .bar-row .lbl {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dstat .v {
+    font-size: 16px;
+  }
+
+  .dstat {
+    padding: 10px;
+  }
+
+  .big-stat {
+    font-size: 28px;
+  }
+}
+
+/* Daily progress chart (full-width, fixed height) */
+.dash-chart-wrap { position: relative; width: 100%; height: 260px; }
+.dash-chart-wrap canvas { width: 100% !important; height: 100% !important; }
