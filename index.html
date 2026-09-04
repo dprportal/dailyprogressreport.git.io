@@ -45,10 +45,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=19">
-  <link rel="stylesheet" href="css/dashboard.css?v=19">
-  <link rel="stylesheet" href="css/forms.css?v=19">
-  <link rel="stylesheet" href="css/admin.css?v=19">
+  <link rel="stylesheet" href="css/style.css?v=20">
+  <link rel="stylesheet" href="css/dashboard.css?v=20">
+  <link rel="stylesheet" href="css/forms.css?v=20">
+  <link rel="stylesheet" href="css/admin.css?v=20">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
@@ -274,6 +274,7 @@
             <option value="dropdown">Dropdown</option>
             <option value="date">Date</option>
             <option value="textarea">Textarea</option>
+            <option value="calculated">Calculated (auto)</option>
           </select>
         </div>
         <div class="field">
@@ -301,6 +302,26 @@
       <div class="field" id="fe_optionsRow" style="display:none;">
         <label for="fe_options">Dropdown Options</label>
         <textarea id="fe_options" class="sw-textarea" rows="2" placeholder="Comma separated, e.g. Yes, No, Partial"></textarea>
+      </div>
+      <div class="field" id="fe_formulaRow" style="display:none;">
+        <label>Formula <span class="req">*</span></label>
+        <div class="formula-display" id="fe_formulaDisplay"></div>
+        <div class="formula-fieldpicker" id="fe_formulaFields"></div>
+        <div class="formula-ops">
+          <button type="button" class="formula-op-btn" data-op="+">+</button>
+          <button type="button" class="formula-op-btn" data-op="-">−</button>
+          <button type="button" class="formula-op-btn" data-op="*">×</button>
+          <button type="button" class="formula-op-btn" data-op="/">÷</button>
+          <button type="button" class="formula-op-btn" data-op="(">(</button>
+          <button type="button" class="formula-op-btn" data-op=")">)</button>
+          <button type="button" class="formula-op-btn formula-side-btn" id="fe_formulaBackspace" title="Remove last"><i class="fa-solid fa-delete-left"></i></button>
+          <button type="button" class="formula-op-btn formula-side-btn" id="fe_formulaClear" title="Clear formula">Clear</button>
+        </div>
+        <p class="desc formula-error" id="fe_formulaError" style="display:none;"></p>
+        <input type="hidden" id="fe_formula" value="">
+        <label style="display:flex; align-items:center; gap:8px; margin-top:8px; cursor:pointer;">
+          <input type="checkbox" id="fe_allowOverride" class="sw-checkbox"> Allow manual override of calculated value
+        </label>
       </div>
       <div class="row2">
         <div class="field">
@@ -1245,12 +1266,33 @@
                     <option value="dropdown">Dropdown</option>
                     <option value="date">Date</option>
                     <option value="textarea">Textarea</option>
+                    <option value="calculated">Calculated (auto)</option>
                   </select>
                 </div>
               </div>
               <div class="field" id="af_optionsRow" style="display:none;">
                 <label for="af_options">Dropdown Options <span class="req">*</span></label>
                 <textarea id="af_options" class="sw-textarea" rows="2" placeholder="Enter options separated by commas, e.g. Yes, No, Partial"></textarea>
+              </div>
+              <div class="field" id="af_formulaRow" style="display:none;">
+                <label>Formula <span class="req">*</span></label>
+                <div class="formula-display" id="af_formulaDisplay"></div>
+                <div class="formula-fieldpicker" id="af_formulaFields"></div>
+                <div class="formula-ops">
+                  <button type="button" class="formula-op-btn" data-op="+">+</button>
+                  <button type="button" class="formula-op-btn" data-op="-">−</button>
+                  <button type="button" class="formula-op-btn" data-op="*">×</button>
+                  <button type="button" class="formula-op-btn" data-op="/">÷</button>
+                  <button type="button" class="formula-op-btn" data-op="(">(</button>
+                  <button type="button" class="formula-op-btn" data-op=")">)</button>
+                  <button type="button" class="formula-op-btn formula-side-btn" id="af_formulaBackspace" title="Remove last"><i class="fa-solid fa-delete-left"></i></button>
+                  <button type="button" class="formula-op-btn formula-side-btn" id="af_formulaClear" title="Clear formula">Clear</button>
+                </div>
+                <p class="desc formula-error" id="af_formulaError" style="display:none;"></p>
+                <input type="hidden" id="af_formula" value="">
+                <label style="display:flex; align-items:center; gap:8px; margin-top:8px; cursor:pointer;">
+                  <input type="checkbox" id="af_allowOverride" class="sw-checkbox"> Allow manual override of calculated value
+                </label>
               </div>
               <div class="row2">
                 <div class="field">
@@ -1437,17 +1479,17 @@
   }, 9000);
 })();
 </script>
-<script type="module" src="js/firebase.js?v=19"></script>
-<script type="module" src="js/auth.js?v=19"></script>
-<script type="module" src="js/app.js?v=19"></script>
-<script type="module" src="js/dpr.js?v=19"></script>
-<script type="module" src="js/dashboard.js?v=19"></script>
-<script type="module" src="js/engineers.js?v=19"></script>
-<script type="module" src="js/reports.js?v=19"></script>
-<script type="module" src="js/field-editor.js?v=19"></script>
-<script type="module" src="js/dropdowns.js?v=19"></script>
-<script type="module" src="js/export.js?v=19"></script>
-<script type="module" src="js/menu.js?v=19"></script>
+<script type="module" src="js/firebase.js?v=20"></script>
+<script type="module" src="js/auth.js?v=20"></script>
+<script type="module" src="js/app.js?v=20"></script>
+<script type="module" src="js/dpr.js?v=20"></script>
+<script type="module" src="js/dashboard.js?v=20"></script>
+<script type="module" src="js/engineers.js?v=20"></script>
+<script type="module" src="js/reports.js?v=20"></script>
+<script type="module" src="js/field-editor.js?v=20"></script>
+<script type="module" src="js/dropdowns.js?v=20"></script>
+<script type="module" src="js/export.js?v=20"></script>
+<script type="module" src="js/menu.js?v=20"></script>
 
 <!-- ==================== PWA: service worker + install ==================== -->
 <script>

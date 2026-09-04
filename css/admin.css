@@ -397,3 +397,43 @@
 .dd-row .dd-suffix { font-size: 12px; font-weight: 500; color: var(--app-muted); margin-left: 4px; }
 .dd-row .dd-edit-input { flex: 1 1 auto; min-width: 0; margin-right: 10px; }
 .dd-row-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+
+/* ============================================================
+   FORMULA BUILDER (Calculated fields) — appended
+   ============================================================ */
+.formula-display {
+  min-height: 44px; padding: 8px 10px; border: 1px solid var(--app-line);
+  border-radius: 10px; background: var(--app-surface, #fff);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  margin-bottom: 10px;
+}
+.formula-placeholder { font-size: 13px; color: var(--app-muted); }
+.formula-chip {
+  display: inline-flex; align-items: center; padding: 4px 10px;
+  border-radius: 999px; background: var(--app-teal-light, #e6f6f4);
+  color: var(--app-teal, #0f766e); font-size: 13px; font-weight: 600;
+  border: 1px solid var(--app-teal, #0f766e);
+}
+.formula-chip-op {
+  background: var(--app-slate-light, #f1f5f9); color: var(--app-slate, #475569);
+  border-color: var(--app-line); font-weight: 700; padding: 4px 12px;
+}
+.formula-fieldpicker {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+}
+.formula-field-btn {
+  padding: 6px 12px; border-radius: 8px; border: 1px solid var(--app-line);
+  background: var(--app-surface, #fff); color: var(--app-ink); font-size: 13px;
+  font-weight: 600; cursor: pointer; transition: border-color .14s ease, background .14s ease;
+}
+.formula-field-btn:hover { border-color: var(--app-teal); background: var(--app-teal-light, #e6f6f4); }
+.formula-empty-hint { font-size: 12px; color: var(--app-muted); }
+.formula-ops { display: flex; flex-wrap: wrap; gap: 6px; }
+.formula-op-btn {
+  min-width: 38px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--app-line);
+  background: var(--app-slate-light, #f1f5f9); color: var(--app-ink); font-weight: 700;
+  font-size: 15px; cursor: pointer; transition: border-color .14s ease, background .14s ease;
+}
+.formula-op-btn:hover { border-color: var(--app-teal); }
+.formula-side-btn { font-size: 12px; font-weight: 600; padding: 8px 12px; }
+.formula-error { color: var(--app-rose, #e11d48); font-weight: 600; }

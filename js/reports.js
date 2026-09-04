@@ -3,11 +3,11 @@
    Table Rendering | Filters | Search | Dynamic Columns
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=19';
-import { State } from './auth.js?v=19';
-import { AppUtils } from './app.js?v=19';
-import { enterEditMode } from './dpr.js?v=19';
-import { buildDprMessage, whatsappShareUrl, copyTextToClipboard } from './whatsapp-share.js?v=19';
+import { DataService, COLLECTIONS } from './firebase.js?v=20';
+import { State } from './auth.js?v=20';
+import { AppUtils } from './app.js?v=20';
+import { enterEditMode } from './dpr.js?v=20';
+import { buildDprMessage, whatsappShareUrl, copyTextToClipboard } from './whatsapp-share.js?v=20';
 
 /* =============================================
    GET FILTERED DATA

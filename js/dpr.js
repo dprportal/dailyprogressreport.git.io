@@ -3,9 +3,10 @@
    Dynamic Form | Field Visibility | CRUD | S.No Auto-increment
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=19';
-import { State } from './auth.js?v=19';
-import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=19';
+import { DataService, COLLECTIONS } from './firebase.js?v=20';
+import { State } from './auth.js?v=20';
+import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=20';
+import { evaluateFormula } from './formula-engine.js?v=20';
 
 /* =============================================
    FIELD VISIBILITY CONFIG  (driven by WORK TYPE)
@@ -413,6 +414,27 @@ function renderCustomFields() {
   const container = document.getElementById('admin-custom-fields-container');
   if (!container) return;
 
+  // ROOT CAUSE OF THE "field appears twice / shows up under Remarks" BUG:
+  // applyFieldLayout() MOVES each mapped custom field's DOM node out of this
+  // container into its target section card (e.g. #card-fittings .sw-card-body).
+  // On the next render, `container.innerHTML = ''` only clears THIS container —
+  // it does nothing to the node that was already moved elsewhere. This function
+  // then builds a brand-new node with the SAME id ("customfield-<fieldId>") and
+  // appends it back into this container. That leaves two elements sharing one
+  // id: the real one living in its section, and an orphan sitting here — and
+  // this container is positioned immediately after #card-remarks in index.html,
+  // so the orphan visually reads as an extra copy of the field "under Remarks",
+  // regardless of which section the field actually belongs to. document.getElementById()
+  // keeps resolving to the OLD (already-placed) node, so applyFieldLayout() never
+  // touches the new orphan to clean it up.
+  //
+  // Fix: before rebuilding, remove every previously rendered custom-field node
+  // and wrapper card wherever it currently lives in the document, not just
+  // inside this container. That guarantees at most one DOM node per fieldId
+  // exists at any time, so there is nothing left for a stale id lookup to find.
+  document.querySelectorAll('[id^="customfield-"]').forEach(el => el.remove());
+  document.querySelectorAll('.custom-field-card[data-custom-section="custom"]').forEach(el => el.remove());
+
   const customFields = (State.fieldDefs || []).filter(f => !f.system && f.visible !== false);
   container.innerHTML = '';
 
@@ -465,6 +487,8 @@ function renderCustomFields() {
   });
 
   applyFieldLayout();
+  wireCalculatedFieldsRecalc();
+  recalcCalculatedFields();
 }
 
 function renderCustomField(fieldDef) {
@@ -490,16 +514,80 @@ function renderCustomField(fieldDef) {
     case 'textarea':
       inputHtml = `<textarea id="${fieldId}" class="sw-textarea" rows="2" placeholder="Enter ${AppUtils.esc(fieldDef.label)}" ${requiredAttr}></textarea>`;
       break;
+    case 'calculated': {
+      const readOnlyAttr = fieldDef.allowManualOverride ? '' : 'readonly';
+      inputHtml = `<input type="number" id="${fieldId}" class="sw-input calculated-field-input" step="any" placeholder="0" ${readOnlyAttr} data-formula="${AppUtils.esc(fieldDef.formula || '')}" data-allow-override="${!!fieldDef.allowManualOverride}">`;
+      break;
+    }
     default:
       inputHtml = `<input type="text" id="${fieldId}" class="sw-input" placeholder="Enter ${AppUtils.esc(fieldDef.label)}">`;
   }
 
+  const calcBadge = fieldDef.type === 'calculated'
+    ? '<span class="fd-hidden-badge" style="background:var(--app-sky-light);color:var(--app-sky);">Auto-calculated</span>'
+    : '';
+
   return `
     <div class="field custom-admin-field ${layingClass}" id="customfield-${fieldDef.fieldId}" data-laying="${AppUtils.esc(fieldDef.layingWork || '')}" data-worktype="${AppUtils.esc(fieldDef.workType || '')}">
-      <label for="${fieldId}">${AppUtils.esc(fieldDef.label)} ${required}</label>
+      <label for="${fieldId}">${AppUtils.esc(fieldDef.label)} ${required} ${calcBadge}</label>
       ${inputHtml}
     </div>
   `;
+}
+
+/* =============================================
+   CALCULATED CUSTOM FIELDS
+   Recomputes every admin-defined "calculated" field whenever any
+   field it depends on changes. Reads live values from both
+   built-in system inputs (SYS_FIELD_INPUT) and other custom
+   inputs (custom_<fieldId>), so calculated fields can reference
+   either kind — and even chain off another calculated field.
+   ============================================= */
+function getFieldValueForFormula(fieldId) {
+  const sysInputId = SYS_FIELD_INPUT[fieldId];
+  const el = sysInputId ? document.getElementById(sysInputId) : document.getElementById('custom_' + fieldId);
+  if (!el || el.disabled) return 0;
+  return AppUtils.cleanNum(el.value);
+}
+
+function recalcCalculatedFields() {
+  const calcDefs = (State.fieldDefs || []).filter(f => !f.system && f.type === 'calculated' && f.formula && f.visible !== false);
+  if (!calcDefs.length) return;
+
+  // Two passes so a calculated field may reference another calculated
+  // field regardless of definition order (circular refs are already
+  // rejected by the Field Editor before a formula can be saved).
+  for (let pass = 0; pass < 2; pass++) {
+    calcDefs.forEach(def => {
+      const input = document.getElementById('custom_' + def.fieldId);
+      if (!input || input.disabled) return;
+      // Manual-override fields: don't clobber a value the user is actively editing
+      if (def.allowManualOverride && document.activeElement === input) return;
+
+      const result = evaluateFormula(def.formula, new Proxy({}, { get: (_, id) => getFieldValueForFormula(String(id)) }));
+      input.value = (result === null || Number.isNaN(result)) ? '' : (Math.round(result * 100) / 100);
+    });
+  }
+}
+
+let recalcTimer = null;
+function scheduleRecalc() {
+  clearTimeout(recalcTimer);
+  recalcTimer = setTimeout(recalcCalculatedFields, 120);
+}
+
+// Attaches a single delegated input listener (covers system + custom
+// fields, including ones added/re-rendered later) rather than binding to
+// every field individually, which is fragile across re-renders.
+let calcListenerWired = false;
+function wireCalculatedFieldsRecalc() {
+  if (calcListenerWired) return;
+  calcListenerWired = true;
+  document.addEventListener('input', (e) => {
+    const t = e.target;
+    if (!t || !t.id) return;
+    if (t.id.startsWith('f_') || t.id.startsWith('custom_')) scheduleRecalc();
+  });
 }
 
 function updateCustomFieldsVisibility(workType, layingWork) {
@@ -837,6 +925,9 @@ async function loadRecordIntoForm(record) {
 
   // Custom fields
   loadCustomFieldsIntoForm(record);
+  // Re-derive calculated fields from the freshly-loaded source values
+  // rather than trusting the (possibly stale) value stored on the record.
+  scheduleRecalc();
 }
 
 function enterEditMode(record) {

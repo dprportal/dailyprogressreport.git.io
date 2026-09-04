@@ -3,8 +3,8 @@
    CSV Export | Excel Export with SheetJS | Dynamic Columns
    ============================================= */
 
-import { State } from './auth.js?v=19';
-import { AppUtils } from './app.js?v=19';
+import { State } from './auth.js?v=20';
+import { AppUtils } from './app.js?v=20';
 
 /* =============================================
    GET FILTERED DATA

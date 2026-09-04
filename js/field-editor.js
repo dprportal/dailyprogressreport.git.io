@@ -3,10 +3,11 @@
    Admin Field Management | Drag & Drop | Dynamic Form Generation
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=19';
-import { State } from './auth.js?v=19';
-import { AppUtils } from './app.js?v=19';
-import { loadWhatsappTemplate, saveWhatsappTemplate, getDefaultTemplate, getAvailableTokens, renderTemplate } from './whatsapp-share.js?v=19';
+import { DataService, COLLECTIONS } from './firebase.js?v=20';
+import { State } from './auth.js?v=20';
+import { AppUtils } from './app.js?v=20';
+import { loadWhatsappTemplate, saveWhatsappTemplate, getDefaultTemplate, getAvailableTokens, renderTemplate } from './whatsapp-share.js?v=20';
+import { validateFormula, wouldCreateCircularDependency } from './formula-engine.js?v=20';
 
 /* =============================================
    DEFAULT FIELD DEFINITIONS
@@ -140,6 +141,163 @@ async function ensureFieldDefs() {
 }
 
 /* =============================================
+   FORMULA BUILDER (Calculated fields)
+   Click-to-build formula editor: field/operator buttons push
+   tokens onto an internal array (never raw eval'd text), which
+   is serialized to an id-based formula string for storage and
+   validated + checked for circular dependencies before save.
+   ============================================= */
+const formulaState = {
+  af: { tokens: [], excludeId: null },
+  fe: { tokens: [], excludeId: null }
+};
+
+// Fields eligible to appear in a formula: built-in numeric fields plus
+// any custom field that is itself a plain number or another calculated
+// field — excluding the field currently being authored (no self-reference).
+function getEligibleFormulaFields(excludeId) {
+  const systemNumeric = DEFAULT_FIELD_DEFS
+    .filter(d => d.type === 'number')
+    .map(d => ({ id: d.fieldId, label: d.label }));
+  const customNumeric = (State.fieldDefs || [])
+    .filter(f => !f.system && (f.type === 'number' || f.type === 'calculated') && f.fieldId !== excludeId)
+    .map(f => ({ id: f.fieldId, label: f.label }));
+  return [...systemNumeric, ...customNumeric];
+}
+
+function formulaLabelFor(id, excludeId) {
+  const match = getEligibleFormulaFields(excludeId).find(f => f.id === id);
+  return match ? match.label : id;
+}
+
+function renderFormulaFieldPicker(prefix, excludeId) {
+  const container = document.getElementById(`${prefix}_formulaFields`);
+  if (!container) return;
+  const fields = getEligibleFormulaFields(excludeId);
+  container.innerHTML = fields.length
+    ? fields.map(f => `<button type="button" class="formula-field-btn" data-field-id="${AppUtils.esc(f.id)}">${AppUtils.esc(f.label)}</button>`).join('')
+    : `<span class="formula-empty-hint">No number fields available yet — add one first.</span>`;
+
+  container.querySelectorAll('.formula-field-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.fieldId;
+      formulaState[prefix].tokens.push({ kind: 'field', id, label: btn.textContent });
+      renderFormulaDisplay(prefix);
+    });
+  });
+}
+
+function serializeFormulaTokens(tokens) {
+  return tokens.map(t => (t.kind === 'field' ? t.id : t.op)).join(' ');
+}
+
+function deserializeFormulaToText(formula, excludeId) {
+  // Re-hydrate a stored id-based formula into display tokens when opening
+  // the edit modal for an existing calculated field.
+  const OP_RE = /^[+\-*/()]$/;
+  const parts = String(formula || '').match(/[0-9]+(?:\.[0-9]+)?|[A-Za-z_][A-Za-z0-9_]*|[+\-*/()]/g) || [];
+  return parts.map(p => {
+    if (OP_RE.test(p)) return { kind: 'op', op: p };
+    if (/^[0-9]/.test(p)) return { kind: 'op', op: p }; // numeric literal, displayed as-is
+    return { kind: 'field', id: p, label: formulaLabelFor(p, excludeId) };
+  });
+}
+
+function renderFormulaDisplay(prefix) {
+  const display = document.getElementById(`${prefix}_formulaDisplay`);
+  const hiddenInput = document.getElementById(`${prefix}_formula`);
+  const errorEl = document.getElementById(`${prefix}_formulaError`);
+  const tokens = formulaState[prefix].tokens;
+  if (!display || !hiddenInput) return;
+
+  display.innerHTML = tokens.length
+    ? tokens.map(t => t.kind === 'field'
+        ? `<span class="formula-chip">${AppUtils.esc(t.label)}</span>`
+        : `<span class="formula-chip formula-chip-op">${AppUtils.esc(t.op)}</span>`).join('')
+    : `<span class="formula-placeholder">Click fields and operators below to build a formula…</span>`;
+
+  const formula = serializeFormulaTokens(tokens);
+  hiddenInput.value = formula;
+
+  if (!errorEl) return;
+  if (!tokens.length) { errorEl.style.display = 'none'; return; }
+
+  const allowedIds = new Set(getEligibleFormulaFields(formulaState[prefix].excludeId).map(f => f.id));
+  const result = validateFormula(formula, allowedIds);
+  if (!result.valid) {
+    errorEl.textContent = result.error;
+    errorEl.style.display = 'block';
+  } else {
+    errorEl.style.display = 'none';
+  }
+}
+
+function setupFormulaBuilder(prefix) {
+  const opButtons = document.querySelectorAll(`#${prefix}_formulaRow .formula-op-btn[data-op]`);
+  opButtons.forEach(btn => {
+    if (btn.dataset.wired) return;
+    btn.dataset.wired = '1';
+    btn.addEventListener('click', () => {
+      formulaState[prefix].tokens.push({ kind: 'op', op: btn.dataset.op });
+      renderFormulaDisplay(prefix);
+    });
+  });
+
+  const clearBtn = document.getElementById(`${prefix}_formulaClear`);
+  if (clearBtn && !clearBtn.dataset.wired) {
+    clearBtn.dataset.wired = '1';
+    clearBtn.addEventListener('click', () => { formulaState[prefix].tokens = []; renderFormulaDisplay(prefix); });
+  }
+
+  const backBtn = document.getElementById(`${prefix}_formulaBackspace`);
+  if (backBtn && !backBtn.dataset.wired) {
+    backBtn.dataset.wired = '1';
+    backBtn.addEventListener('click', () => { formulaState[prefix].tokens.pop(); renderFormulaDisplay(prefix); });
+  }
+}
+
+// Shows/hides the formula row alongside the dropdown-options row based on
+// the selected field type, for either the Add Field or Edit Field form.
+function toggleFormulaRow(prefix, excludeId) {
+  const typeSel = document.getElementById(`${prefix}_type`);
+  const row = document.getElementById(`${prefix}_formulaRow`);
+  if (!typeSel || !row) return;
+  const isCalculated = typeSel.value === 'calculated';
+  row.style.display = isCalculated ? 'block' : 'none';
+  if (isCalculated) {
+    formulaState[prefix].excludeId = excludeId;
+    renderFormulaFieldPicker(prefix, excludeId);
+    setupFormulaBuilder(prefix);
+    renderFormulaDisplay(prefix);
+  }
+}
+
+// Validates + circular-dependency-checks a calculated field's formula
+// before it's allowed to save. `ownFieldId` is null when adding a new
+// field (a brand-new id can never already be part of a cycle).
+function validateCalculatedFieldOrToast(prefix, ownFieldId) {
+  const formula = (document.getElementById(`${prefix}_formula`).value || '').trim();
+  if (!formula) { AppUtils.toast('Please build a formula for this calculated field.', true); return null; }
+
+  const allowedIds = new Set(getEligibleFormulaFields(ownFieldId).map(f => f.id));
+  const result = validateFormula(formula, allowedIds);
+  if (!result.valid) { AppUtils.toast(`Formula error: ${result.error}`, true); return null; }
+
+  if (ownFieldId) {
+    const formulaById = {};
+    (State.fieldDefs || []).forEach(f => {
+      if (f.type === 'calculated' && f.formula && f.fieldId !== ownFieldId) formulaById[f.fieldId] = f.formula;
+    });
+    if (wouldCreateCircularDependency(ownFieldId, formula, formulaById)) {
+      AppUtils.toast('That formula creates a circular dependency between fields.', true);
+      return null;
+    }
+  }
+
+  return formula;
+}
+
+/* =============================================
    ADD CUSTOM FIELD
    ============================================= */
 async function addCustomField(e) {
@@ -188,6 +346,14 @@ async function addCustomField(e) {
   if (layingWork) fieldDef.layingWork = layingWork;
   if (type === 'dropdown' && options) fieldDef.options = options;
 
+  if (type === 'calculated') {
+    const formula = validateCalculatedFieldOrToast('af', null);
+    if (!formula) return;
+    fieldDef.formula = formula;
+    fieldDef.allowManualOverride = document.getElementById('af_allowOverride').checked;
+    fieldDef.required = false; // calculated fields are never user-required
+  }
+
   AppUtils.showBusy('Adding field…');
   try {
     const docRef = await DataService.add(COLLECTIONS.FIELD_DEFS, fieldDef);
@@ -197,6 +363,8 @@ async function addCustomField(e) {
     AppUtils.toast(`Field "${label}" added successfully.`);
     document.getElementById('addFieldForm').reset();
     document.getElementById('af_optionsRow').style.display = 'none';
+    document.getElementById('af_formulaRow').style.display = 'none';
+    formulaState.af.tokens = [];
     renderFieldList();
 
     // Notify other modules
@@ -482,6 +650,15 @@ function openFieldEditor(key) {
   document.getElementById('fe_options').value = f.options || '';
 
   toggleEditOptionsRow();
+
+  // Pre-fill the formula builder if this is an existing calculated field
+  formulaState.fe.tokens = (f.type === 'calculated' && f.formula)
+    ? deserializeFormulaToText(f.formula, f.fieldId)
+    : [];
+  document.getElementById('fe_allowOverride').checked = !!f.allowManualOverride;
+  toggleFormulaRow('fe', f.fieldId);
+  renderFormulaDisplay('fe');
+
   openModal('modal-field-edit');
 }
 
@@ -489,6 +666,7 @@ function toggleEditOptionsRow() {
   const row = document.getElementById('fe_optionsRow');
   if (!row) return;
   row.style.display = document.getElementById('fe_type').value === 'dropdown' ? 'block' : 'none';
+  toggleFormulaRow('fe', document.getElementById('fe_fieldId').value || null);
 }
 
 async function saveFieldEdit(e) {
@@ -518,6 +696,18 @@ async function saveFieldEdit(e) {
     updates.options = updates.type === 'dropdown'
       ? document.getElementById('fe_options').value.trim()
       : '';
+
+    if (updates.type === 'calculated') {
+      const formula = validateCalculatedFieldOrToast('fe', f.fieldId);
+      if (!formula) return;
+      updates.formula = formula;
+      updates.allowManualOverride = document.getElementById('fe_allowOverride').checked;
+      updates.required = false;
+    } else if (f.type === 'calculated') {
+      // Switched away from calculated — clear stale formula metadata
+      updates.formula = null;
+      updates.allowManualOverride = false;
+    }
   } else if (f.type === 'dropdown') {
     updates.options = document.getElementById('fe_options').value.trim();
   }
@@ -693,6 +883,7 @@ function setupFieldTypeHandler() {
         optionsRow.style.display = 'none';
         document.getElementById('af_options').required = false;
       }
+      toggleFormulaRow('af', null);
     });
   }
 }
