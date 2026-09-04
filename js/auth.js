@@ -10,7 +10,7 @@ import {
   db,
   COLLECTIONS,
   DataService
-} from './firebase.js?v=18';
+} from './firebase.js?v=19';
 
 import {
   signInWithEmailAndPassword,
@@ -257,7 +257,14 @@ const Auth = {
 
     if (State.engineers.length === 0) {
       try {
-        const snap = await DataService.getAll(COLLECTIONS.ENGINEERS, { orderBy: 'name' });
+        // Cache-first: shows the picker instantly from local cache (if any),
+        // then quietly refreshes from the server and re-renders if still open.
+        const snap = await DataService.getAllFast(COLLECTIONS.ENGINEERS, { orderBy: 'name' }, (fresh) => {
+          State.engineers = fresh;
+          const stillOnPicker = document.getElementById('eng-select-screen') &&
+            document.getElementById('eng-select-screen').style.display !== 'none';
+          if (stillOnPicker) Auth.renderEngSelect();
+        });
         State.engineers = snap;
       } catch (e) {
         grid.innerHTML = `<div class="eng-select-no-results"><p>Error loading engineers.</p></div>`;
@@ -343,7 +350,11 @@ const Auth = {
 
     Utils.showBusy('Signing in…');
     try {
-      const snap = await DataService.getById(COLLECTIONS.ENGINEERS, engineerId);
+      // Verify against the already-loaded profile first — instant, no network
+      // wait. Only fetches fresh if we somehow don't have it cached yet (the
+      // background refresh from renderEngSelect keeps this reasonably current
+      // anyway, so a just-changed PIN is picked up within moments).
+      let snap = engineer.loginPassword !== undefined ? engineer : await DataService.getById(COLLECTIONS.ENGINEERS, engineerId);
       if (!snap) { errorEl.textContent = 'Profile not found.'; errorEl.classList.add('show'); return; }
       if (snap.loginPassword !== password) {
         errorEl.textContent = 'Incorrect PIN. Please try again.';
@@ -395,8 +406,14 @@ const Auth = {
 
     State.sessionRestoreInProgress = true;
     try {
+      // Cache-first: an already-cached profile restores the session instantly
+      // instead of blocking on a network round-trip on every app reload.
       const eng = await Promise.race([
-        DataService.getById(COLLECTIONS.ENGINEERS, savedId),
+        DataService.getByIdFast(COLLECTIONS.ENGINEERS, savedId, (fresh) => {
+          if (fresh && State.currentEngineer && State.currentEngineer.id === savedId) {
+            State.currentEngineer = { id: savedId, ...fresh };
+          }
+        }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('restore-timeout')), 4000))
       ]);
       if (!eng) {
@@ -517,6 +534,31 @@ const Auth = {
         return;
       }
 
+      // Optimistic fast path: if we already verified this uid as admin on
+      // this device before, boot immediately from the cached role instead of
+      // waiting on a live Firestore round-trip — then quietly re-verify in
+      // the background. Any mismatch signs the user straight back out.
+      let cachedRole = null;
+      try { cachedRole = JSON.parse(localStorage.getItem('dpr_admin_role_cache') || 'null'); } catch (e) { /* ignore */ }
+      const isCachedForThisUser = cachedRole && cachedRole.uid === user.uid && cachedRole.role === 'admin';
+
+      if (isCachedForThisUser) {
+        try { localStorage.removeItem('dpr_eng_session'); } catch (e) { /* ignore */ }
+        State.currentUser = user;
+        State.currentRole = 'admin';
+        window.dispatchEvent(new CustomEvent('auth:login', { detail: { role: 'admin' } }));
+
+        // Background re-verify — doesn't block the UI, only corrects it if wrong
+        DataService.getById(COLLECTIONS.USERS, user.uid).then(roleSnap => {
+          if (!roleSnap || roleSnap.role !== 'admin') {
+            try { localStorage.removeItem('dpr_admin_role_cache'); } catch (e) { /* ignore */ }
+            Utils.toast('Account access changed. Please sign in again.', true);
+            signOut(auth);
+          }
+        }).catch(() => { /* offline — keep the optimistic session, we'll re-check next time */ });
+        return;
+      }
+
       try {
         const roleSnap = await DataService.getById(COLLECTIONS.USERS, user.uid);
         if (!roleSnap || roleSnap.role !== 'admin') {
@@ -526,6 +568,7 @@ const Auth = {
         }
         // An admin is signing in — drop any saved engineer session
         try { localStorage.removeItem('dpr_eng_session'); } catch (e) { /* ignore */ }
+        try { localStorage.setItem('dpr_admin_role_cache', JSON.stringify({ uid: user.uid, role: 'admin' })); } catch (e) { /* ignore */ }
         State.currentUser = user;
         State.currentRole = 'admin';
         window.dispatchEvent(new CustomEvent('auth:login', { detail: { role: 'admin' } }));

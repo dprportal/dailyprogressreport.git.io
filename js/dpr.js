@@ -3,9 +3,9 @@
    Dynamic Form | Field Visibility | CRUD | S.No Auto-increment
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=18';
-import { State } from './auth.js?v=18';
-import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=18';
+import { DataService, COLLECTIONS } from './firebase.js?v=19';
+import { State } from './auth.js?v=19';
+import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=19';
 
 /* =============================================
    FIELD VISIBILITY CONFIG  (driven by WORK TYPE)

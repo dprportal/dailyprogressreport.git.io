@@ -3,8 +3,8 @@
    Navigation | Utilities | Toast | Modals | Initialization
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=18';
-import { State, Utils } from './auth.js?v=18';
+import { DataService, COLLECTIONS } from './firebase.js?v=19';
+import { State, Utils } from './auth.js?v=19';
 
 // How many most-recent DPR records to load on boot. Keeps Firestore reads
 // bounded (and load fast) no matter how many years of data accumulate.
@@ -324,28 +324,28 @@ function setupEventListeners() {
    APP BOOT
    ============================================= */
 async function loadAllData() {
-  // Small collections load normally (they're tiny and needed before first render)
-  const [engineers, fieldDefs, settingsArr] = await Promise.all([
-    DataService.getAll(COLLECTIONS.ENGINEERS, { orderBy: 'name' }),
-    DataService.getAll(COLLECTIONS.FIELD_DEFS, { orderBy: 'order' }),
-    DataService.getAll(COLLECTIONS.SETTINGS)
-  ]);
-
-  State.engineers = engineers || [];
-  State.fieldDefs = fieldDefs || [];
-
-  // Process settings
-  if (settingsArr && settingsArr.length > 0) {
-    const s = settingsArr[0];
-    State.settings = {
-      snoStart: s.snoStart || 1,
-      pageSize: s.pageSize || 50
-    };
-  }
-
-  // DPRs load cache-first: instant on restart, then refreshed from the server
-  // in the background. Keeps the app responsive instead of waiting on the network.
-  const dprs = await DataService.getAllFast(
+  // Cache-first for every collection: instant on repeat logins (reads local
+  // IndexedDB cache), then quietly refreshes from the server in the background.
+  // This is the single biggest win for perceived login speed — previously
+  // these three always waited on a live network round-trip before the UI
+  // could even appear.
+  const engineersP = DataService.getAllFast(
+    COLLECTIONS.ENGINEERS, { orderBy: 'name' },
+    (fresh) => {
+      State.engineers = fresh;
+      window.dispatchEvent(new CustomEvent('engineers:changed'));
+    }
+  );
+  const fieldDefsP = DataService.getAllFast(
+    COLLECTIONS.FIELD_DEFS, { orderBy: 'order' },
+    (fresh) => { State.fieldDefs = fresh; window.dispatchEvent(new CustomEvent('fielddefs:changed')); }
+  );
+  const settingsP = DataService.getAllFast(
+    COLLECTIONS.SETTINGS, {},
+    (fresh) => { applySettings(fresh); }
+  );
+  // DPRs already loaded this way
+  const dprsP = DataService.getAllFast(
     COLLECTIONS.DPR,
     { orderBy: 'date', orderDir: 'desc', limit: RECENT_DPR_LIMIT },
     (fresh) => {
@@ -354,10 +354,26 @@ async function loadAllData() {
       window.dispatchEvent(new CustomEvent('dpr:changed'));
     }
   );
+
+  const [engineers, fieldDefs, settingsArr, dprs] = await Promise.all([engineersP, fieldDefsP, settingsP, dprsP]);
+
+  State.engineers = engineers || [];
+  State.fieldDefs = fieldDefs || [];
+  applySettings(settingsArr);
   State.dprs = dprs || [];                 // already newest-first (date desc)
   State.dprsFullyLoaded = false;
 
   State.dataLoaded = true;
+}
+
+function applySettings(settingsArr) {
+  if (settingsArr && settingsArr.length > 0) {
+    const s = settingsArr[0];
+    State.settings = {
+      snoStart: s.snoStart || 1,
+      pageSize: s.pageSize || 50
+    };
+  }
 }
 
 async function bootApp() {

@@ -3,9 +3,9 @@
    CRUD | Validation | Auto-refresh | Statistics
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=18';
-import { State, Utils } from './auth.js?v=18';
-import { AppUtils } from './app.js?v=18';
+import { DataService, COLLECTIONS } from './firebase.js?v=19';
+import { State, Utils } from './auth.js?v=19';
+import { AppUtils } from './app.js?v=19';
 
 /* =============================================
    ENGINEER STATS
@@ -324,6 +324,11 @@ function init() {
     if (State.currentPage === 'engineers') {
       renderEngineerGrid();
     }
+  });
+
+  // Background refresh of the engineer list (from the cache-first boot load)
+  window.addEventListener('engineers:changed', () => {
+    if (State.currentPage === 'engineers') renderEngineerGrid();
   });
 }
 

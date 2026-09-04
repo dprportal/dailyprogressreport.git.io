@@ -6,9 +6,9 @@
    so nothing changes until an admin customises it.
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=18';
-import { State } from './auth.js?v=18';
-import { AppUtils } from './app.js?v=18';
+import { DataService, COLLECTIONS } from './firebase.js?v=19';
+import { State } from './auth.js?v=19';
+import { AppUtils } from './app.js?v=19';
 
 const TEMPLATE_DOC_ID = 'whatsappTemplate';
 

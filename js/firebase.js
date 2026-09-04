@@ -20,6 +20,8 @@ import {
   doc,
   setDoc,
   getDoc,
+  getDocFromCache,
+  getDocFromServer,
   updateDoc,
   query,
   where,
@@ -206,6 +208,32 @@ const DataService = {
       if (!snap.exists()) return null;
       return { id: snap.id, ...snap.data() };
     });
+  },
+
+  /* Cache-first single-doc read: returns the locally-cached doc instantly
+     (if any) so flows like "restore my saved session on app reload" don't
+     block on a network round-trip. Refreshes from the server in the
+     background and hands the fresh doc to onFresh() when it arrives. Falls
+     back to waiting on the server if there's no cache yet. */
+  async getByIdFast(collectionName, id, onFresh = null) {
+    const ref = doc(db, collectionName, id);
+
+    let cached = null;
+    try {
+      const cacheSnap = await getDocFromCache(ref);
+      if (cacheSnap.exists()) cached = { id: cacheSnap.id, ...cacheSnap.data() };
+    } catch (e) { /* no cache available */ }
+
+    const serverPromise = getDocFromServer(ref)
+      .then(snap => (snap.exists() ? { id: snap.id, ...snap.data() } : null))
+      .catch(() => undefined); // undefined = fetch failed, distinct from "doc doesn't exist"
+
+    if (cached) {
+      if (onFresh) serverPromise.then(fresh => { if (fresh !== undefined) onFresh(fresh); });
+      return cached;
+    }
+    const fresh = await serverPromise;
+    return fresh === undefined ? null : fresh;
   },
 
   async add(collectionName, data) {

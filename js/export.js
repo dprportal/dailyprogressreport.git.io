@@ -3,8 +3,8 @@
    CSV Export | Excel Export with SheetJS | Dynamic Columns
    ============================================= */
 
-import { State } from './auth.js?v=18';
-import { AppUtils } from './app.js?v=18';
+import { State } from './auth.js?v=19';
+import { AppUtils } from './app.js?v=19';
 
 /* =============================================
    GET FILTERED DATA
@@ -414,6 +414,11 @@ function init() {
 
   // Populate engineer filter on boot
   window.addEventListener('app:boot', () => {
+    populateEngineerFilter();
+  });
+
+  // Background refresh of the engineer list (from the cache-first boot load)
+  window.addEventListener('engineers:changed', () => {
     populateEngineerFilter();
   });
 }

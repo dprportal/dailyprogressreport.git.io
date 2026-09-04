@@ -3,10 +3,10 @@
    Admin Field Management | Drag & Drop | Dynamic Form Generation
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=18';
-import { State } from './auth.js?v=18';
-import { AppUtils } from './app.js?v=18';
-import { loadWhatsappTemplate, saveWhatsappTemplate, getDefaultTemplate, getAvailableTokens, renderTemplate } from './whatsapp-share.js?v=18';
+import { DataService, COLLECTIONS } from './firebase.js?v=19';
+import { State } from './auth.js?v=19';
+import { AppUtils } from './app.js?v=19';
+import { loadWhatsappTemplate, saveWhatsappTemplate, getDefaultTemplate, getAvailableTokens, renderTemplate } from './whatsapp-share.js?v=19';
 
 /* =============================================
    DEFAULT FIELD DEFINITIONS
