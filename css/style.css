@@ -826,6 +826,24 @@ button { cursor: pointer; }
 }
 .topbar-actions { display: flex; gap: 8px; align-items: center; }
 
+/* Sticky Save bar — keeps the Save action reachable on a long DPR form */
+.sticky-save-bar {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: var(--app-surface);
+  border-top: 1px solid var(--app-line);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -6px 20px rgba(8, 20, 19, 0.10);
+}
+.sticky-save-bar.show { display: block; }
+.sticky-save-bar .sw-btn { max-width: 640px; margin: 0 auto; }
+.sticky-save-bar.saving .sw-btn { opacity: 0.75; pointer-events: none; }
+#view-entry { padding-bottom: 76px; }
+
 /* Tabs */
 nav.tabs {
   position: sticky;

@@ -1,11 +1,16 @@
 /* =============================================
    WHATSAPP SHARE
-   Builds a clean, professional DPR text report and
-   provides WhatsApp share + clipboard copy helpers.
-   The message adapts to whichever fields are present,
-   so Pipe Laying / Road Restoration / Hydro Test all
-   format correctly without merging fields.
+   Builds the DPR text report from an admin-editable
+   template (Settings -> WhatsApp Template). Ships with a
+   default template that reproduces the original format,
+   so nothing changes until an admin customises it.
    ============================================= */
+
+import { DataService, COLLECTIONS } from './firebase.js?v=18';
+import { State } from './auth.js?v=18';
+import { AppUtils } from './app.js?v=18';
+
+const TEMPLATE_DOC_ID = 'whatsappTemplate';
 
 function fmtDateDMY(iso) {
   if (!iso) return '';
@@ -20,112 +25,234 @@ function isNumericLike(v) {
   return /^\d+(\.\d+)?$/.test(String(v).trim());
 }
 
+/* =============================================
+   TOKEN DEFINITIONS
+   Every {{token}} the admin can use in the template,
+   and how to pull + format its value from a DPR record.
+   ============================================= */
+const TOKENS = {
+  date:            { label: 'Date',            get: r => fmtDateDMY(r.date) },
+  sno:             { label: 'S.No',             get: r => r.sno },
+  engineer:        { label: 'Engineer',         get: r => r.engineerName || r.createdByName || '' },
+  workType:        { label: 'Work Type',        get: r => r.workType },
+  layingWork:      { label: 'Activity',         get: r => r.layingWork },
+  package:         { label: 'Package',          get: r => r.packageNo },
+  zone:            { label: 'Zone',             get: r => r.zoneName ? `${r.zoneNo ? r.zoneNo + ' - ' : ''}${r.zoneName}` : r.zoneNo },
+  dma:             { label: 'DMA',               get: r => r.dma },
+  stretch:         { label: 'Stretch',          get: r => r.stretch },
+  pipeDia:         { label: 'Pipe Dia',         get: r => r.pipeDia, unit: r => isNumericLike(r.pipeDia) ? 'mm' : '' },
+  layingLength:    { label: 'Laying Length',    get: r => r.layingLength, unit: () => 'm' },
+  pipeMaterial:    { label: 'Pipe Material',    get: r => r.pipeMaterial },
+  joints:          { label: 'Joints',           get: r => r.joints },
+  jointType:       { label: 'Joint Type',       get: r => r.jointType },
+  bendQty:         { label: 'Bend',             get: r => r.bendQty },
+  teeQty:          { label: 'Tee',              get: r => r.teeQty },
+  uclampQty:       { label: 'U-Clamp Fixing',   get: r => r.uclampQty },
+  dptJoints:       { label: 'DPT Joints',       get: r => r.dptJoints },
+  utJoints:        { label: 'UT Joints',        get: r => r.utJoints },
+  fittingsInstalled: { label: 'Fittings Installed', get: r => r.fittingsInstalled },
+  restoredLength:  { label: 'Restored Length',  get: r => r.restoredLength, unit: () => 'm' },
+  restoredWidth:   { label: 'Restored Width',   get: r => r.restoredWidth, unit: () => 'm' },
+  restoredArea:    { label: 'Restored Area',    get: r => r.restoredArea, unit: () => 'sqm' },
+  surfaceType:     { label: 'Surface Type',     get: r => r.surfaceType },
+  testedLength:    { label: 'Tested Length',    get: r => r.testedLength, unit: () => 'm' },
+  testPressure:    { label: 'Test Pressure',    get: r => r.testPressure, unit: () => 'Bar' },
+  startTime:       { label: 'Start Time',       get: r => r.startTime },
+  endTime:         { label: 'End Time',         get: r => r.endTime },
+  testResult:      { label: 'Test Result',      get: r => r.testResult },
+  ferrule:         { label: 'Ferrule',          get: r => r.ferrule },
+  ballValve:       { label: 'Ball Valve',       get: r => r.ballValve },
+  meterBox:        { label: 'Meter Box',        get: r => r.meterBox },
+  waterMeter:      { label: 'Water Meter',      get: r => r.waterMeter },
+  excavLength:     { label: 'Excavation Length', get: r => r.excavLength, unit: () => 'm' },
+  excavWidth:      { label: 'Excavation Width',  get: r => r.excavWidth, unit: () => 'm' },
+  excavDepth:      { label: 'Excavation Depth',  get: r => r.excavDepth, unit: () => 'm' },
+  excavVolume:     { label: 'Excavation Volume', get: r => r.excavVolume, unit: () => 'm³' },
+  noOfTeam:        { label: 'Teams',            get: r => r.noOfTeam },
+  welder:          { label: 'Welder',           get: r => r.welder },
+  fitter:          { label: 'Fitter',           get: r => r.fitter },
+  unskilledLabour: { label: 'Unskilled Labour', get: r => r.unskilledLabour },
+  manpower:        { label: 'Manpower',         get: r => r.manpower },
+  workTime:        { label: 'Work Time',        get: r => r.workTime, unit: () => 'hrs' },
+  contractor:      { label: 'Contractor',       get: r => r.contractor },
+  remark:          { label: 'Remarks',          get: r => r.remark }
+};
+
+// {{customFields}} is a block token -- resolved separately before line processing
+function customFieldsBlock(r) {
+  if (!r.customFields || typeof r.customFields !== 'object') return '';
+  return Object.keys(r.customFields)
+    .map(k => {
+      const v = r.customFields[k];
+      if (v === undefined || v === null || String(v).trim() === '') return '';
+      return `${k}: ${String(v).trim()}`;
+    })
+    .filter(Boolean)
+    .join('\n');
+}
+
+/* =============================================
+   DEFAULT TEMPLATE
+   Reproduces the original built-in report format.
+   Any line containing only empty tokens is dropped
+   automatically -- no need for manual conditionals.
+   ============================================= */
+const DEFAULT_TEMPLATE = `*DAILY PROGRESS REPORT*
+Shimla 24x7 Water Supply Project
+
+Date: {{date}}
+S.No: {{sno}}
+Engineer: {{engineer}}
+
+Work Type: {{workType}}
+Activity: {{layingWork}}
+
+Package: {{package}}
+Zone: {{zone}}
+DMA: {{dma}}
+Stretch: {{stretch}}
+
+Pipe Dia: {{pipeDia}}
+Laying Length: {{layingLength}}
+Pipe Material: {{pipeMaterial}}
+Joints: {{joints}}
+Joint Type: {{jointType}}
+Bend: {{bendQty}}
+Tee: {{teeQty}}
+U-Clamp Fixing: {{uclampQty}}
+DPT Joints: {{dptJoints}}
+UT Joints: {{utJoints}}
+Fittings Installed: {{fittingsInstalled}}
+Restored Length: {{restoredLength}}
+Restored Width: {{restoredWidth}}
+Restored Area: {{restoredArea}}
+Surface Type: {{surfaceType}}
+Tested Length: {{testedLength}}
+Test Pressure: {{testPressure}}
+Start Time: {{startTime}}
+End Time: {{endTime}}
+Test Result: {{testResult}}
+Ferrule: {{ferrule}}
+Ball Valve: {{ballValve}}
+Meter Box: {{meterBox}}
+Water Meter: {{waterMeter}}
+
+Excavation Length: {{excavLength}}
+Excavation Width: {{excavWidth}}
+Excavation Depth: {{excavDepth}}
+Excavation Volume: {{excavVolume}}
+
+Teams: {{noOfTeam}}
+Welder: {{welder}}
+Fitter: {{fitter}}
+Unskilled Labour: {{unskilledLabour}}
+Manpower: {{manpower}}
+Work Time: {{workTime}}
+
+{{customFields}}
+
+Contractor: {{contractor}}
+Remarks: {{remark}}`;
+
+/* =============================================
+   TEMPLATE ENGINE
+   - {{token}} is substituted with its formatted value.
+   - A line containing only token(s) + static label text is
+     dropped entirely if every token on that line is empty.
+   - {{customFields}} expands to 0+ lines before that pass.
+   ============================================= */
+function resolveToken(id, r) {
+  const t = TOKENS[id];
+  if (!t) return null; // unknown token -> leave untouched
+  let v = t.get(r);
+  if (v === undefined || v === null) return '';
+  if (typeof v === 'number') {
+    if (!v) return '';
+    return `${v}${t.unit ? ' ' + t.unit(r) : ''}`;
+  }
+  const s = String(v).trim();
+  if (!s) return '';
+  return `${s}${t.unit ? ' ' + t.unit(r) : ''}`;
+}
+
+export function renderTemplate(template, r) {
+  // 1) Expand block tokens first (can be multi-line or empty)
+  let text = String(template || '').replace(/\{\{\s*customFields\s*\}\}/g, () => customFieldsBlock(r));
+
+  // 2) Line-by-line token substitution with auto-drop for empty lines
+  const lines = text.split('\n');
+  const kept = [];
+  const tokenRe = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+
+  for (const line of lines) {
+    const tokensInLine = [...line.matchAll(tokenRe)].map(m => m[1]);
+    if (tokensInLine.length === 0) {
+      kept.push(line); // static text / blank line spacer -- always keep
+      continue;
+    }
+    let allEmpty = true;
+    const substituted = line.replace(tokenRe, (_, id) => {
+      const val = resolveToken(id, r);
+      if (val === null) return `{{${id}}}`; // unknown token, leave as-is
+      if (val !== '') allEmpty = false;
+      return val;
+    });
+    if (allEmpty) continue; // every token on this line was empty -> drop the line
+    kept.push(substituted);
+  }
+
+  // 3) Collapse 3+ blank lines down to a single blank line, trim ends
+  return kept.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 /**
- * Build the formatted DPR message for sharing.
+ * Build the formatted DPR message for sharing, using the
+ * admin's saved template (or the built-in default).
  * @param {object} r - a DPR record
  * @returns {string}
  */
 export function buildDprMessage(r) {
-  const eng = r.engineerName || r.createdByName || '';
-  const segments = [];
-
-  // value -> "Label: value unit" (skips empty strings and zero numbers)
-  const val = (label, v, unit) => {
-    if (v === undefined || v === null) return '';
-    if (typeof v === 'number') {
-      if (!v) return '';
-      return `${label}: ${v}${unit ? ' ' + unit : ''}`;
-    }
-    const s = String(v).trim();
-    if (!s) return '';
-    return `${label}: ${s}${unit ? ' ' + unit : ''}`;
-  };
-
-  // push a section (array of lines) only if it has content
-  const section = (arr) => {
-    const filled = arr.filter(Boolean);
-    if (filled.length) segments.push(filled.join('\n'));
-  };
-
-  // Header
-  segments.push('*DAILY PROGRESS REPORT*\nShimla 24x7 Water Supply Project');
-
-  // Meta
-  section([
-    val('Date', fmtDateDMY(r.date)),
-    val('S.No', r.sno),
-    val('Engineer', eng),
-  ]);
-
-  // Work classification
-  section([
-    val('Work Type', r.workType),
-    val('Activity', r.layingWork),
-  ]);
-
-  // Location
-  const zone = r.zoneName ? `${r.zoneNo ? r.zoneNo + ' - ' : ''}${r.zoneName}` : r.zoneNo;
-  section([
-    val('Package', r.packageNo),
-    val('Zone', zone),
-    val('DMA', r.dma),
-    val('Stretch', r.stretch),
-  ]);
-
-  // Work-specific (pipe laying / restoration / hydro / fittings)
-  section([
-    val('Pipe Dia', r.pipeDia, isNumericLike(r.pipeDia) ? 'mm' : ''),
-    val('Laying Length', r.layingLength, 'm'),
-    val('Joints', r.joints),
-    val('Restored Length', r.restoredLength, 'm'),
-    val('Restored Width', r.restoredWidth, 'm'),
-    val('Restored Area', r.restoredArea, 'sqm'),
-    val('Surface Type', r.surfaceType),
-    val('Tested Length', r.testedLength, 'm'),
-    val('Test Pressure', r.testPressure, 'Bar'),
-    val('Start Time', r.startTime),
-    val('End Time', r.endTime),
-    val('Test Result', r.testResult),
-    val('Ferrule', r.ferrule),
-    val('Ball Valve', r.ballValve),
-    val('Meter Box', r.meterBox),
-    val('Water Meter', r.waterMeter),
-  ]);
-
-  // Excavation
-  section([
-    val('Excavation Length', r.excavLength, 'm'),
-    val('Excavation Width', r.excavWidth, 'm'),
-    val('Excavation Depth', r.excavDepth, 'm'),
-    val('Excavation Volume', r.excavVolume, 'm³'),
-  ]);
-
-  // Manpower & time
-  section([
-    val('Teams', r.noOfTeam),
-    val('Welder', r.welder),
-    val('Fitter', r.fitter),
-    val('Unskilled Labour', r.unskilledLabour),
-    val('Manpower', r.manpower),
-    val('Work Time', r.workTime, 'hrs'),
-  ]);
-
-  // Any custom admin fields
-  if (r.customFields && typeof r.customFields === 'object') {
-    const custom = Object.keys(r.customFields)
-      .map(k => val(k, r.customFields[k]))
-      .filter(Boolean);
-    section(custom);
-  }
-
-  // Contractor + remarks
-  section([
-    val('Contractor', r.contractor),
-    val('Remarks', r.remark),
-  ]);
-
-  return segments.join('\n\n');
+  const template = (State.whatsappTemplate && String(State.whatsappTemplate).trim())
+    ? State.whatsappTemplate
+    : DEFAULT_TEMPLATE;
+  return renderTemplate(template, r);
 }
+
+/* =============================================
+   ADMIN TEMPLATE PERSISTENCE
+   ============================================= */
+export async function loadWhatsappTemplate() {
+  try {
+    const doc = await DataService.getById(COLLECTIONS.SETTINGS, TEMPLATE_DOC_ID);
+    State.whatsappTemplate = (doc && typeof doc.template === 'string') ? doc.template : '';
+  } catch (e) {
+    console.error('loadWhatsappTemplate failed', e);
+    State.whatsappTemplate = State.whatsappTemplate || '';
+  }
+  return State.whatsappTemplate;
+}
+
+export async function saveWhatsappTemplate(text) {
+  const prev = State.whatsappTemplate;
+  State.whatsappTemplate = text;
+  try {
+    await DataService.set(COLLECTIONS.SETTINGS, TEMPLATE_DOC_ID, { template: text });
+    return true;
+  } catch (e) {
+    console.error('saveWhatsappTemplate failed', e);
+    State.whatsappTemplate = prev;
+    if (AppUtils && AppUtils.toast) AppUtils.toast('Could not save template. Check your connection.', true);
+    return false;
+  }
+}
+
+export function getDefaultTemplate() { return DEFAULT_TEMPLATE; }
+export function getAvailableTokens() { return Object.entries(TOKENS).map(([id, t]) => ({ id, label: t.label })); }
+
+function init() {
+  window.addEventListener('app:boot', () => { loadWhatsappTemplate(); });
+}
+init();
 
 /**
  * WhatsApp share URL (works on mobile app and WhatsApp Web).

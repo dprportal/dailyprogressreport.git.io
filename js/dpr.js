@@ -3,9 +3,9 @@
    Dynamic Form | Field Visibility | CRUD | S.No Auto-increment
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=16';
-import { State } from './auth.js?v=16';
-import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=16';
+import { DataService, COLLECTIONS } from './firebase.js?v=18';
+import { State } from './auth.js?v=18';
+import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=18';
 
 /* =============================================
    FIELD VISIBILITY CONFIG  (driven by WORK TYPE)
@@ -14,15 +14,15 @@ import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=16';
    ============================================= */
 const WORKTYPE_CONFIG = {
   'Pipe Laying': {
-    'card-location': true, 'card-pipe': true, 'card-excavation': true, 'card-restoration': false, 'card-hydro': false,
+    'card-location': true, 'card-pipe': true, 'card-joints': true, 'card-excavation': true, 'card-restoration': false, 'card-hydro': false,
     'card-fittings': true, 'card-manpower': true, 'card-contractor': true, 'card-remarks': true
   },
   'Hydro Test': {
-    'card-location': true, 'card-pipe': true, 'card-excavation': false, 'card-restoration': false, 'card-hydro': true,
+    'card-location': true, 'card-pipe': true, 'card-joints': false, 'card-excavation': false, 'card-restoration': false, 'card-hydro': true,
     'card-fittings': false, 'card-manpower': true, 'card-contractor': true, 'card-remarks': true
   },
   'Road Restoration': {
-    'card-location': true, 'card-pipe': false, 'card-excavation': false, 'card-restoration': true, 'card-hydro': false,
+    'card-location': true, 'card-pipe': false, 'card-joints': false, 'card-excavation': false, 'card-restoration': true, 'card-hydro': false,
     'card-fittings': false, 'card-manpower': true, 'card-contractor': true, 'card-remarks': true
   }
 };
@@ -30,7 +30,8 @@ const WORKTYPE_CONFIG = {
 // Inputs that live inside each card (f_zone / f_dma are owned by the cascade, f_stretch handled separately)
 const CARD_INPUTS = {
   'card-location': ['f_package', 'f_zone', 'f_dma'],
-  'card-pipe': ['f_pipeDia', 'f_layingLength', 'f_joints'],
+  'card-pipe': ['f_pipeDia', 'f_layingLength', 'f_pipeMaterial'],
+  'card-joints': ['f_joints', 'f_jointType', 'f_bendQty', 'f_teeQty', 'f_uclampQty', 'f_dptJoints', 'f_utJoints', 'f_fittingsInstalled'],
   'card-excavation': ['f_excavLength', 'f_excavWidth', 'f_excavDepth', 'f_excavVolume'],
   'card-restoration': ['f_restoredLength', 'f_restoredWidth', 'f_surfaceType', 'f_restoredArea'],
   'card-hydro': ['f_testedLength', 'f_testPressure', 'f_startTime', 'f_endTime', 'f_testResult'],
@@ -43,11 +44,11 @@ const CARD_INPUTS = {
 // Fields that are required when their card is visible
 const BASE_REQUIRED = new Set([
   'f_package', 'f_zone', 'f_dma',
-  'f_pipeDia', 'f_layingLength', 'f_joints',
-  'f_excavLength', 'f_excavWidth', 'f_excavDepth',
+  'f_pipeDia', 'f_layingLength',
+  'f_joints',
   'f_restoredLength', 'f_restoredWidth', 'f_surfaceType',
   'f_testedLength', 'f_testPressure', 'f_startTime', 'f_endTime', 'f_testResult',
-  'f_noOfTeam', 'f_welder', 'f_fitter', 'f_unskilledLabour', 'f_manpower', 'f_workTime',
+  'f_noOfTeam', 'f_workTime',
   'f_contractor'
 ]);
 
@@ -60,7 +61,9 @@ const CASCADE_FIELDS = new Set(['f_zone', 'f_dma']);
    ============================================= */
 const SYS_FIELD_WRAP = {
   package: 'field-package', zone: 'field-zone', dma: 'field-dma', stretch: 'field-stretch',
-  pipeDia: 'field-pipeDia', layingLength: 'field-layingLength', joints: 'field-joints',
+  pipeDia: 'field-pipeDia', layingLength: 'field-layingLength', pipeMaterial: 'field-pipeMaterial',
+  joints: 'field-joints', jointType: 'field-jointType', bendQty: 'field-bendQty', teeQty: 'field-teeQty',
+  uclampQty: 'field-uclampQty', dptJoints: 'field-dptJoints', utJoints: 'field-utJoints', fittingsInstalled: 'field-fittingsInstalled',
   excavLength: 'field-excavLength', excavWidth: 'field-excavWidth', excavDepth: 'field-excavDepth',
   restoredLength: 'field-restoredLength', restoredWidth: 'field-restoredWidth',
   ferrule: 'field-ferrule', ballValve: 'field-ballValve', meterBox: 'field-meterBox', waterMeter: 'field-waterMeter',
@@ -70,7 +73,9 @@ const SYS_FIELD_WRAP = {
 };
 const SYS_FIELD_INPUT = {
   package: 'f_package', zone: 'f_zone', dma: 'f_dma', stretch: 'f_stretch',
-  pipeDia: 'f_pipeDia', layingLength: 'f_layingLength', joints: 'f_joints',
+  pipeDia: 'f_pipeDia', layingLength: 'f_layingLength', pipeMaterial: 'f_pipeMaterial',
+  joints: 'f_joints', jointType: 'f_jointType', bendQty: 'f_bendQty', teeQty: 'f_teeQty',
+  uclampQty: 'f_uclampQty', dptJoints: 'f_dptJoints', utJoints: 'f_utJoints', fittingsInstalled: 'f_fittingsInstalled',
   excavLength: 'f_excavLength', excavWidth: 'f_excavWidth', excavDepth: 'f_excavDepth',
   restoredLength: 'f_restoredLength', restoredWidth: 'f_restoredWidth',
   ferrule: 'f_ferrule', ballValve: 'f_ballValve', meterBox: 'f_meterBox', waterMeter: 'f_waterMeter',
@@ -80,12 +85,68 @@ const SYS_FIELD_INPUT = {
 };
 
 /* =============================================
+   FIELD LAYOUT ENGINE
+   Gives the admin real control over field position:
+   moves each field's wrapper into the card matching its
+   Field-Editor "section", then orders siblings by "order".
+   Works for system fields AND custom fields alike.
+   ============================================= */
+const SECTION_CONTAINER_SELECTOR = {
+  location: '#card-location .sw-card-body',
+  pipe: '#card-pipe .sw-card-body',
+  joints: '#card-joints .sw-card-body',
+  excavation: '#excavationFields',
+  restoration: '#card-restoration .sw-card-body',
+  hydro: '#card-hydro .sw-card-body',
+  fittings: '#card-fittings .sw-card-body',
+  manpower: '#card-manpower .sw-card-body',
+  contractor: '#card-contractor .sw-card-body',
+  remarks: '#card-remarks .sw-card-body'
+};
+
+function applyFieldLayout() {
+  const defs = State.fieldDefs || [];
+  const bySelector = {};
+
+  defs.forEach(def => {
+    const sel = SECTION_CONTAINER_SELECTOR[def.section];
+    if (!sel) return; // "Work Details" + "Custom Section" fields keep their fixed position
+
+    let wrap;
+    if (def.system) {
+      const wrapId = SYS_FIELD_WRAP[def.fieldId];
+      wrap = wrapId ? document.getElementById(wrapId) : null;
+    } else {
+      wrap = document.getElementById('customfield-' + def.fieldId);
+    }
+    if (!wrap) return;
+
+    (bySelector[sel] = bySelector[sel] || []).push({ wrap, order: def.order || 0 });
+  });
+
+  Object.entries(bySelector).forEach(([sel, items]) => {
+    const container = document.querySelector(sel);
+    if (!container) return;
+    items.sort((a, b) => a.order - b.order);
+    // Batch the DOM moves into a single reflow via a fragment
+    const frag = document.createDocumentFragment();
+    items.forEach(it => frag.appendChild(it.wrap));
+    container.appendChild(frag);
+  });
+}
+
+/* =============================================
    APPLY ADMIN FIELD DEFINITIONS TO THE FORM
-   Hides admin-hidden system fields, applies required + label overrides.
-   Composes on top of the laying-work visibility logic.
+   Hides admin-hidden system fields, applies required + label
+   overrides, and (new) lets admin restrict ANY system field to
+   a specific Work Type / Laying Work — purely additive on top
+   of the built-in card logic (never re-enables what it disabled).
    ============================================= */
 function applyFieldDefsToForm() {
   const defs = State.fieldDefs || [];
+  const currentWorkType = (document.getElementById('f_worktype') || {}).value || '';
+  const currentLayingWork = (document.getElementById('f_laying') || {}).value || '';
+
   defs.forEach(def => {
     if (!def.system) return;
     const wrapId = SYS_FIELD_WRAP[def.fieldId];
@@ -93,11 +154,14 @@ function applyFieldDefsToForm() {
     const wrap = document.getElementById(wrapId);
     if (!wrap) return;
     const input = document.getElementById(SYS_FIELD_INPUT[def.fieldId]);
-    const adminHidden = def.visible === false;
 
-    // Admin-hidden always wins: remove from form + exclude from submit/validation
-    wrap.classList.toggle('admin-hidden', adminHidden);
-    if (input && adminHidden) {
+    const adminHidden = def.visible === false;
+    const condMismatch = (def.workType && def.workType !== currentWorkType) ||
+                          (def.layingWork && def.layingWork !== currentLayingWork);
+    const forceHide = adminHidden || condMismatch;
+
+    wrap.classList.toggle('admin-hidden', forceHide);
+    if (input && forceHide) {
       input.disabled = true;
       input.required = false;
     }
@@ -105,8 +169,8 @@ function applyFieldDefsToForm() {
     // Stretch keeps its own (laying-work dependent) required + marker logic
     if (def.fieldId === 'stretch') return;
 
-    // For fields currently shown & enabled by laying-work, honour admin "required"
-    if (!adminHidden && input && !input.disabled) {
+    // For fields currently shown & enabled by the built-in logic, honour admin "required"
+    if (!forceHide && input && !input.disabled) {
       input.required = !!def.required;
     }
 
@@ -119,6 +183,8 @@ function applyFieldDefsToForm() {
       label.innerHTML = AppUtils.esc(def.label) + ' ' + marker;
     }
   });
+
+  applyFieldLayout();
 }
 
 /* =============================================
@@ -263,11 +329,41 @@ function updateFieldVisibility() {
     if (!showFittings) el.value = '';
   });
 
+  // Joints, Welding & Testing — Distribution Main / Transmission Main only
+  const isDistribution = layingWork === 'Distribution Main';
+  const isTransmission = layingWork === 'Transmission Main';
+  const showJoints = locationShown && workType === 'Pipe Laying' && (isDistribution || isTransmission);
+  const jointsCard = document.getElementById('card-joints');
+  if (jointsCard) jointsCard.classList.toggle('hidden', !showJoints);
+  (CARD_INPUTS['card-joints'] || []).forEach(inputId => {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    el.disabled = !showJoints;
+    if (!showJoints) el.value = '';
+  });
+  if (showJoints) document.getElementById('f_joints').required = true;
+
+  // Terminology adapts to Distribution vs Transmission
+  const jointsTitle = document.getElementById('jointsCardTitle');
+  const jointsLabel = document.getElementById('jointsFieldLabel');
+  if (jointsTitle) jointsTitle.textContent = isTransmission ? 'Joints, Welding & Testing' : 'Pipe Connections & Testing';
+  if (jointsLabel) jointsLabel.innerHTML = (isTransmission ? 'Number of Joints Welded' : 'Number of Joints Completed') + ' <span class="req">*</span>';
+
+  // Fittings Installed — Distribution Main only (distinct from HSC fittings)
+  const showFittingsInstalled = showJoints && isDistribution;
+  const fittingsInstalledWrap = document.getElementById('field-fittingsInstalled');
+  const fittingsInstalledInput = document.getElementById('f_fittingsInstalled');
+  if (fittingsInstalledWrap) fittingsInstalledWrap.style.display = showFittingsInstalled ? '' : 'none';
+  if (fittingsInstalledInput) { fittingsInstalledInput.disabled = !showFittingsInstalled; if (!showFittingsInstalled) fittingsInstalledInput.value = ''; }
+
   // Custom admin fields (filtered by work type + laying work)
   updateCustomFieldsVisibility(workType, layingWork);
 
   // Honour admin field-editor visibility/required/labels (composes on top)
   applyFieldDefsToForm();
+
+  // Excavation is opt-in via checkbox — sync its fields to the checkbox + card state
+  syncExcavationToggle();
 
   // Hydro Test uses Tested Length + Start/End Time instead of Laying Length / Work Time
   const hideForHydro = ['layingLength', 'workTime'];
@@ -285,6 +381,32 @@ function updateFieldVisibility() {
 }
 
 /* =============================================
+   EXCAVATION TOGGLE (opt-in checkbox)
+   ============================================= */
+function syncExcavationToggle() {
+  const cb = document.getElementById('f_hasExcavation');
+  const wrap = document.getElementById('excavationFields');
+  const card = document.getElementById('card-excavation');
+  if (!cb || !wrap || !card) return;
+  const cardVisible = !card.classList.contains('hidden');
+  const on = cardVisible && cb.checked;
+
+  wrap.classList.toggle('hidden', !on);
+  ['f_excavLength', 'f_excavWidth', 'f_excavDepth'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = !on;
+    el.required = on;
+    if (!on) el.value = '';
+  });
+  const volEl = document.getElementById('f_excavVolume');
+  if (volEl) { volEl.disabled = !cardVisible; if (!on) volEl.value = ''; }
+
+  cb.disabled = !cardVisible;
+  if (!cardVisible) cb.checked = false;
+}
+
+/* =============================================
    CUSTOM ADMIN FIELDS
    ============================================= */
 function renderCustomFields() {
@@ -292,37 +414,37 @@ function renderCustomFields() {
   if (!container) return;
 
   const customFields = (State.fieldDefs || []).filter(f => !f.system && f.visible !== false);
+  container.innerHTML = '';
 
-  if (customFields.length === 0) {
-    container.innerHTML = '';
-    return;
-  }
+  if (customFields.length === 0) { applyFieldLayout(); return; }
 
-  // Group by section
-  const sections = {};
-  customFields.forEach(f => {
-    const section = f.section || 'custom';
-    if (!sections[section]) sections[section] = [];
-    sections[section].push(f);
+  // Fields whose section matches a real card get parked here temporarily —
+  // applyFieldLayout() moves each into its target card, in admin-defined order.
+  const mapped = customFields.filter(f => SECTION_CONTAINER_SELECTOR[f.section]);
+  const unmapped = customFields.filter(f => !SECTION_CONTAINER_SELECTOR[f.section]);
+
+  const frag = document.createDocumentFragment();
+  mapped.forEach(f => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderCustomField(f).trim();
+    frag.appendChild(tmp.firstElementChild);
   });
 
-  let html = '';
-  for (const [sectionName, fields] of Object.entries(sections)) {
-    html += `<div class="sw-card custom-field-card" data-custom-section="${sectionName}">`;
-    html += `<div class="sw-card-head" style="--accent: var(--app-sky); --accent-light: var(--app-sky-light);">`;
-    html += `<div class="ic"><i class="fa-solid fa-sliders"></i></div>`;
-    html += `<div><h2>${AppUtils.esc(sectionName.charAt(0).toUpperCase() + sectionName.slice(1))} Fields</h2></div>`;
-    html += `</div>`;
-    html += `<div class="sw-card-body">`;
-
-    fields.forEach(f => {
-      html += renderCustomField(f);
-    });
-
-    html += `</div></div>`;
+  if (unmapped.length) {
+    const card = document.createElement('div');
+    card.className = 'sw-card custom-field-card';
+    card.dataset.customSection = 'custom';
+    card.innerHTML = `
+      <div class="sw-card-head" style="--accent: var(--app-sky); --accent-light: var(--app-sky-light);">
+        <div class="ic"><i class="fa-solid fa-sliders"></i></div>
+        <div><h2>Additional Fields</h2></div>
+      </div>
+      <div class="sw-card-body">${unmapped.map(renderCustomField).join('')}</div>
+    `;
+    frag.appendChild(card);
   }
 
-  container.innerHTML = html;
+  container.appendChild(frag);
 
   // Setup dropdown options for custom dropdown fields
   customFields.forEach(f => {
@@ -341,6 +463,8 @@ function renderCustomFields() {
       }
     }
   });
+
+  applyFieldLayout();
 }
 
 function renderCustomField(fieldDef) {
@@ -371,7 +495,7 @@ function renderCustomField(fieldDef) {
   }
 
   return `
-    <div class="field ${layingClass}" data-laying="${AppUtils.esc(fieldDef.layingWork || '')}" data-worktype="${AppUtils.esc(fieldDef.workType || '')}">
+    <div class="field custom-admin-field ${layingClass}" id="customfield-${fieldDef.fieldId}" data-laying="${AppUtils.esc(fieldDef.layingWork || '')}" data-worktype="${AppUtils.esc(fieldDef.workType || '')}">
       <label for="${fieldId}">${AppUtils.esc(fieldDef.label)} ${required}</label>
       ${inputHtml}
     </div>
@@ -379,7 +503,7 @@ function renderCustomField(fieldDef) {
 }
 
 function updateCustomFieldsVisibility(workType, layingWork) {
-  document.querySelectorAll('#admin-custom-fields-container .field').forEach(el => {
+  document.querySelectorAll('.custom-admin-field').forEach(el => {
     const fieldLaying = el.dataset.laying || '';
     const fieldWorkType = el.dataset.worktype || '';
     const layingMismatch = fieldLaying && fieldLaying !== layingWork;
@@ -456,9 +580,21 @@ function gatherFormData() {
   // Pipe specification
   if (enabled('f_pipeDia')) data.pipeDia = text('f_pipeDia');
   if (enabled('f_layingLength')) data.layingLength = num('f_layingLength');
-  if (enabled('f_joints')) data.joints = num('f_joints');
+  if (enabled('f_pipeMaterial')) data.pipeMaterial = text('f_pipeMaterial');
 
-  // Excavation
+  // Joints, welding & testing
+  if (enabled('f_joints')) data.joints = num('f_joints');
+  if (enabled('f_jointType')) data.jointType = text('f_jointType');
+  if (enabled('f_bendQty')) data.bendQty = num('f_bendQty');
+  if (enabled('f_teeQty')) data.teeQty = num('f_teeQty');
+  if (enabled('f_uclampQty')) data.uclampQty = num('f_uclampQty');
+  if (enabled('f_dptJoints')) data.dptJoints = num('f_dptJoints');
+  if (enabled('f_utJoints')) data.utJoints = num('f_utJoints');
+  if (enabled('f_fittingsInstalled')) data.fittingsInstalled = num('f_fittingsInstalled');
+
+  // Excavation (opt-in)
+  const hasExcavCb = document.getElementById('f_hasExcavation');
+  data.hasExcavation = !!(hasExcavCb && hasExcavCb.checked);
   if (enabled('f_excavLength')) data.excavLength = num('f_excavLength');
   if (enabled('f_excavWidth')) data.excavWidth = num('f_excavWidth');
   if (enabled('f_excavDepth')) data.excavDepth = num('f_excavDepth');
@@ -509,12 +645,14 @@ async function onSubmit(e) {
 
   const form = document.getElementById('dprForm');
   if (!form.checkValidity()) {
-    form.reportValidity();
+    showValidationError(form);
     return;
   }
 
   const btn = document.getElementById('submitBtn');
+  const stickyBar = document.getElementById('stickySaveBar');
   AppUtils.setButtonLoading(btn, true);
+  if (stickyBar) stickyBar.classList.add('saving');
   AppUtils.showBusy(State.editingRecordId ? 'Updating report…' : 'Saving report…');
 
   try {
@@ -576,8 +714,34 @@ async function onSubmit(e) {
     }
   } finally {
     AppUtils.setButtonLoading(btn, false);
+    if (stickyBar) stickyBar.classList.remove('saving');
     AppUtils.hideBusy();
   }
+}
+
+/* =============================================
+   VALIDATION FEEDBACK
+   Finds the first invalid, currently-visible field, scrolls to
+   it, focuses it, and shows a clear toast naming it — so a
+   blocked save is never silent, even on a long mobile form.
+   ============================================= */
+function showValidationError(form) {
+  const invalid = form.querySelector(':invalid:not(:disabled)');
+  if (!invalid) { form.reportValidity(); return; }
+
+  const wrap = invalid.closest('.field') || invalid;
+  const card = invalid.closest('.sw-card');
+  if (card) card.classList.remove('hidden');
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  const label = wrap.querySelector('label');
+  const name = label ? label.textContent.replace('*', '').replace('optional', '').trim() : 'a required field';
+  AppUtils.toast(`Please fill in: ${name}`, true);
+
+  setTimeout(() => {
+    invalid.focus({ preventScroll: true });
+    form.reportValidity();
+  }, 300);
 }
 
 /* =============================================
@@ -614,9 +778,22 @@ async function loadRecordIntoForm(record) {
   // Pipe fields
   if (record.pipeDia) document.getElementById('f_pipeDia').value = record.pipeDia;
   if (record.layingLength !== undefined) document.getElementById('f_layingLength').value = record.layingLength;
-  if (record.joints !== undefined) document.getElementById('f_joints').value = record.joints;
+  if (record.pipeMaterial !== undefined) document.getElementById('f_pipeMaterial').value = record.pipeMaterial;
 
-  // Excavation
+  // Joints, welding & testing
+  if (record.joints !== undefined) document.getElementById('f_joints').value = record.joints;
+  if (record.jointType !== undefined) document.getElementById('f_jointType').value = record.jointType;
+  if (record.bendQty !== undefined) document.getElementById('f_bendQty').value = record.bendQty;
+  if (record.teeQty !== undefined) document.getElementById('f_teeQty').value = record.teeQty;
+  if (record.uclampQty !== undefined) document.getElementById('f_uclampQty').value = record.uclampQty;
+  if (record.dptJoints !== undefined) document.getElementById('f_dptJoints').value = record.dptJoints;
+  if (record.utJoints !== undefined) document.getElementById('f_utJoints').value = record.utJoints;
+  if (record.fittingsInstalled !== undefined) document.getElementById('f_fittingsInstalled').value = record.fittingsInstalled;
+
+  // Excavation (opt-in)
+  const hasExcavCb = document.getElementById('f_hasExcavation');
+  if (hasExcavCb) hasExcavCb.checked = !!record.hasExcavation || record.excavVolume > 0;
+  syncExcavationToggle();
   if (record.excavLength !== undefined) document.getElementById('f_excavLength').value = record.excavLength;
   if (record.excavWidth !== undefined) document.getElementById('f_excavWidth').value = record.excavWidth;
   if (record.excavDepth !== undefined) document.getElementById('f_excavDepth').value = record.excavDepth;
@@ -674,6 +851,8 @@ function enterEditMode(record) {
   document.getElementById('editingBanner').classList.add('show');
   document.getElementById('cancelEditBtn').style.display = 'inline-flex';
   document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-check"></i> Update Daily Progress Report';
+  const stickyLabel1 = document.getElementById('stickySaveBtnLabel');
+  if (stickyLabel1) stickyLabel1.textContent = 'Update Report';
 
   // Admin editing = full form: reveal the work-type selector, hide the module banner
   const wtField = document.getElementById('worktypeField');
@@ -691,6 +870,8 @@ function cancelEdit() {
   document.getElementById('editingBanner').classList.remove('show');
   document.getElementById('cancelEditBtn').style.display = 'none';
   document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-check"></i> Save Daily Progress Report';
+  const stickyLabel2 = document.getElementById('stickySaveBtnLabel');
+  if (stickyLabel2) stickyLabel2.textContent = 'Save Report';
 }
 
 /* =============================================
@@ -715,11 +896,21 @@ function softReset() {
   // Keep date, reset other fields
   document.getElementById('f_pipeDia').selectedIndex = 0;
   document.getElementById('f_layingLength').value = '';
+  const _pm = document.getElementById('f_pipeMaterial'); if (_pm) _pm.value = '';
   document.getElementById('f_joints').value = '';
+  const _jt = document.getElementById('f_jointType'); if (_jt) _jt.value = '';
+  const _bq = document.getElementById('f_bendQty'); if (_bq) _bq.value = '';
+  const _tq = document.getElementById('f_teeQty'); if (_tq) _tq.value = '';
+  const _uq = document.getElementById('f_uclampQty'); if (_uq) _uq.value = '';
+  const _dpt = document.getElementById('f_dptJoints'); if (_dpt) _dpt.value = '';
+  const _ut = document.getElementById('f_utJoints'); if (_ut) _ut.value = '';
+  const _fi = document.getElementById('f_fittingsInstalled'); if (_fi) _fi.value = '';
+  const _hasExcav = document.getElementById('f_hasExcavation'); if (_hasExcav) _hasExcav.checked = false;
   document.getElementById('f_excavLength').value = '';
   document.getElementById('f_excavWidth').value = '';
   document.getElementById('f_excavDepth').value = '';
   document.getElementById('f_excavVolume').value = '';
+  syncExcavationToggle();
   document.getElementById('f_restoredLength').value = '';
   document.getElementById('f_restoredWidth').value = '';
   const _sa = document.getElementById('f_restoredArea'); if (_sa) _sa.value = '';
@@ -812,6 +1003,10 @@ function setupLayingWorkHandler() {
     if (out) out.value = total;
   };
   [wd_, ft_, ul_].forEach(el => { if (el) el.addEventListener('input', recalcManpower); });
+
+  // Excavation opt-in checkbox
+  const hasExcavCb = document.getElementById('f_hasExcavation');
+  if (hasExcavCb) hasExcavCb.addEventListener('change', syncExcavationToggle);
 }
 
 /* =============================================
@@ -834,6 +1029,15 @@ async function init() {
   const form = document.getElementById('dprForm');
   if (form) form.addEventListener('submit', onSubmit);
 
+  // Sticky save bar — mirrors the main Save button so it's always reachable
+  const stickySaveBtn = document.getElementById('stickySaveBtn');
+  if (stickySaveBtn) {
+    stickySaveBtn.addEventListener('click', () => {
+      if (form.requestSubmit) form.requestSubmit();
+      else form.dispatchEvent(new Event('submit', { cancelable: true }));
+    });
+  }
+
   // Cancel edit
   const cancelEditBtn = document.getElementById('cancelEditBtn');
   if (cancelEditBtn) cancelEditBtn.addEventListener('click', cancelEdit);
@@ -845,7 +1049,8 @@ async function init() {
   // Numeric guards
   ["f_layingLength", "f_joints", "f_excavLength", "f_excavWidth", "f_excavDepth",
    "f_restoredLength", "f_restoredWidth", "f_noOfTeam", "f_welder", "f_fitter", "f_unskilledLabour",
-   "f_workTime", "f_ferrule", "f_ballValve", "f_meterBox", "f_waterMeter"].forEach(id => {
+   "f_workTime", "f_ferrule", "f_ballValve", "f_meterBox", "f_waterMeter",
+   "f_bendQty", "f_teeQty", "f_uclampQty", "f_dptJoints", "f_utJoints", "f_fittingsInstalled"].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener("input", AppUtils.clampNonNegative);
@@ -872,6 +1077,8 @@ async function init() {
   // Listen for navigation
   window.addEventListener('app:navigate', (e) => {
     const page = e.detail.page;
+    const stickyBar = document.getElementById('stickySaveBar');
+    if (stickyBar) stickyBar.classList.toggle('show', page === 'entry');
     if (page === 'entry' && !State.editingRecordId) {
       refreshSNo();
     }

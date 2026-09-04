@@ -3,9 +3,10 @@
    Admin Field Management | Drag & Drop | Dynamic Form Generation
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=16';
-import { State } from './auth.js?v=16';
-import { AppUtils } from './app.js?v=16';
+import { DataService, COLLECTIONS } from './firebase.js?v=18';
+import { State } from './auth.js?v=18';
+import { AppUtils } from './app.js?v=18';
+import { loadWhatsappTemplate, saveWhatsappTemplate, getDefaultTemplate, getAvailableTokens, renderTemplate } from './whatsapp-share.js?v=18';
 
 /* =============================================
    DEFAULT FIELD DEFINITIONS
@@ -21,11 +22,19 @@ const DEFAULT_FIELD_DEFS = [
   { fieldId: 'dma', label: 'DMA No.', type: 'dropdown', required: true, system: true, section: 'location', order: 2, visible: true },
   { fieldId: 'stretch', label: 'Transmission Stretch Name', type: 'text', required: false, system: true, section: 'location', order: 3, visible: true, layingWork: 'Transmission Main' },
   { fieldId: 'pipeDia', label: 'Pipe Dia', type: 'dropdown', required: true, system: true, section: 'pipe', order: 0, visible: true, workType: 'Pipe Laying' },
-  { fieldId: 'layingLength', label: 'Laying Length', type: 'number', required: true, system: true, section: 'pipe', order: 1, visible: true },
-  { fieldId: 'joints', label: 'Number of Joints', type: 'number', required: true, system: true, section: 'pipe', order: 2, visible: true, workType: 'Pipe Laying' },
-  { fieldId: 'excavLength', label: 'Excavation Length', type: 'number', required: true, system: true, section: 'excavation', order: 0, visible: true, workType: 'Pipe Laying' },
-  { fieldId: 'excavWidth', label: 'Excavation Width', type: 'number', required: true, system: true, section: 'excavation', order: 1, visible: true, workType: 'Pipe Laying' },
-  { fieldId: 'excavDepth', label: 'Excavation Depth', type: 'number', required: true, system: true, section: 'excavation', order: 2, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'layingLength', label: 'Pipe Laying Quantity', type: 'number', required: true, system: true, section: 'pipe', order: 1, visible: true },
+  { fieldId: 'pipeMaterial', label: 'Pipe Type / Material', type: 'text', required: false, system: true, section: 'pipe', order: 2, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'joints', label: 'Number of Joints', type: 'number', required: true, system: true, section: 'joints', order: 0, visible: true },
+  { fieldId: 'fittingsInstalled', label: 'Fittings Installed', type: 'number', required: false, system: true, section: 'joints', order: 1, visible: true, layingWork: 'Distribution Main' },
+  { fieldId: 'jointType', label: 'Joint Type / Remarks', type: 'text', required: false, system: true, section: 'joints', order: 2, visible: true },
+  { fieldId: 'bendQty', label: 'Bend', type: 'number', required: false, system: true, section: 'joints', order: 3, visible: true },
+  { fieldId: 'teeQty', label: 'Tee', type: 'number', required: false, system: true, section: 'joints', order: 4, visible: true },
+  { fieldId: 'uclampQty', label: 'U-Clamp Fixing', type: 'number', required: false, system: true, section: 'joints', order: 5, visible: true },
+  { fieldId: 'dptJoints', label: 'DPT Done - No. of Joints', type: 'number', required: false, system: true, section: 'joints', order: 6, visible: true },
+  { fieldId: 'utJoints', label: 'UT Done - No. of Joints', type: 'number', required: false, system: true, section: 'joints', order: 7, visible: true },
+  { fieldId: 'excavLength', label: 'Excavation Length', type: 'number', required: false, system: true, section: 'excavation', order: 0, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'excavWidth', label: 'Excavation Width', type: 'number', required: false, system: true, section: 'excavation', order: 1, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'excavDepth', label: 'Excavation Depth', type: 'number', required: false, system: true, section: 'excavation', order: 2, visible: true, workType: 'Pipe Laying' },
   { fieldId: 'restoredLength', label: 'Restored Length', type: 'number', required: true, system: true, section: 'restoration', order: 0, visible: true, workType: 'Road Restoration' },
   { fieldId: 'restoredWidth', label: 'Restored Width', type: 'number', required: true, system: true, section: 'restoration', order: 1, visible: true, workType: 'Road Restoration' },
   { fieldId: 'ferrule', label: 'Ferrule', type: 'number', required: false, system: true, section: 'fittings', order: 0, visible: true, layingWork: 'House Service Connection' },
@@ -33,9 +42,9 @@ const DEFAULT_FIELD_DEFS = [
   { fieldId: 'meterBox', label: 'Meter Box', type: 'number', required: false, system: true, section: 'fittings', order: 2, visible: true, layingWork: 'House Service Connection' },
   { fieldId: 'waterMeter', label: 'Water Meter', type: 'number', required: false, system: true, section: 'fittings', order: 3, visible: true, layingWork: 'House Service Connection' },
   { fieldId: 'noOfTeam', label: 'No of Team', type: 'number', required: true, system: true, section: 'manpower', order: 0, visible: true },
-  { fieldId: 'welder', label: 'Welder (Skilled)', type: 'number', required: true, system: true, section: 'manpower', order: 1, visible: true, workType: 'Pipe Laying' },
-  { fieldId: 'fitter', label: 'Fitter (Skilled)', type: 'number', required: true, system: true, section: 'manpower', order: 2, visible: true, workType: 'Pipe Laying' },
-  { fieldId: 'unskilledLabour', label: 'Unskilled Labour', type: 'number', required: true, system: true, section: 'manpower', order: 3, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'welder', label: 'Welder (Skilled)', type: 'number', required: false, system: true, section: 'manpower', order: 1, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'fitter', label: 'Fitter (Skilled)', type: 'number', required: false, system: true, section: 'manpower', order: 2, visible: true, workType: 'Pipe Laying' },
+  { fieldId: 'unskilledLabour', label: 'Unskilled Labour', type: 'number', required: false, system: true, section: 'manpower', order: 3, visible: true, workType: 'Pipe Laying' },
   { fieldId: 'manpower', label: 'Total Working Manpower', type: 'number', required: true, system: true, section: 'manpower', order: 4, visible: true },
   { fieldId: 'workTime', label: 'Work Time', type: 'number', required: true, system: true, section: 'manpower', order: 5, visible: true },
   { fieldId: 'contractor', label: 'Contractor', type: 'dropdown', required: true, system: true, section: 'contractor', order: 0, visible: true },
@@ -48,6 +57,57 @@ const DEFAULT_FIELD_DEFS = [
    built-in fields (e.g. restoration) into an existing DB.
    Only an admin writes the schema.
    ============================================= */
+
+// Bump this whenever a DEFAULT_FIELD_DEFS entry's required/section/order
+// changes for an existing fieldId — ensureFieldDefs() will then patch those
+// specific fields (and only those) once, without touching anything an admin
+// has customised elsewhere. This fixes "field X is stuck required" bugs
+// caused by earlier defaults having been saved to Firestore already.
+const SCHEMA_MIGRATION_VERSION = 2;
+const MIGRATION_DOC_ID = 'fieldSchemaMigration';
+// fieldIds whose required/section/order/label must match DEFAULT_FIELD_DEFS
+// exactly as of this migration (added new Transmission/Distribution fields +
+// made excavation opt-in + made welder/fitter/unskilledLabour optional)
+const MIGRATION_PATCH_FIELDS = [
+  'joints', 'excavLength', 'excavWidth', 'excavDepth',
+  'welder', 'fitter', 'unskilledLabour', 'layingLength'
+];
+
+async function runSchemaMigration() {
+  try {
+    const doc = await DataService.getById(COLLECTIONS.SETTINGS, MIGRATION_DOC_ID);
+    const currentVersion = (doc && doc.version) || 0;
+    if (currentVersion >= SCHEMA_MIGRATION_VERSION) return;
+
+    let patched = 0;
+    for (const fieldId of MIGRATION_PATCH_FIELDS) {
+      const def = DEFAULT_FIELD_DEFS.find(d => d.fieldId === fieldId);
+      const existing = State.fieldDefs.find(f => f.fieldId === fieldId);
+      if (!def || !existing) continue;
+
+      const patch = {};
+      if (existing.required !== def.required) patch.required = def.required;
+      if (existing.section !== def.section) patch.section = def.section;
+      if (existing.order !== def.order) patch.order = def.order;
+      if (existing.label !== def.label) patch.label = def.label;
+      if (Object.keys(patch).length === 0) continue;
+
+      await DataService.update(COLLECTIONS.FIELD_DEFS, existing.id, patch);
+      Object.assign(existing, patch);
+      patched++;
+    }
+
+    await DataService.set(COLLECTIONS.SETTINGS, MIGRATION_DOC_ID, { version: SCHEMA_MIGRATION_VERSION });
+    if (patched > 0) {
+      renderFieldList();
+      window.dispatchEvent(new CustomEvent('fielddefs:changed'));
+      AppUtils.toast(`Field settings updated (${patched} field${patched === 1 ? '' : 's'} fixed).`);
+    }
+  } catch (e) {
+    console.error('runSchemaMigration error:', e);
+  }
+}
+
 async function ensureFieldDefs() {
   try {
     if (!State.fieldDefs || State.fieldDefs.length === 0) {
@@ -60,12 +120,16 @@ async function ensureFieldDefs() {
     const wasEmpty = State.fieldDefs.length === 0;
     const existingIds = new Set(State.fieldDefs.map(f => f.fieldId));
     const missing = DEFAULT_FIELD_DEFS.filter(d => !existingIds.has(d.fieldId));
-    if (missing.length === 0) return;
 
     for (const def of missing) {
       const ref = await DataService.add(COLLECTIONS.FIELD_DEFS, def);
       State.fieldDefs.push({ id: ref.id, ...def });
     }
+
+    // Fix any fields whose required/section/order is stuck from an older default
+    await runSchemaMigration();
+
+    if (missing.length === 0) return;
 
     renderFieldList();
     window.dispatchEvent(new CustomEvent('fielddefs:changed'));
@@ -169,7 +233,8 @@ function renderFieldList() {
     const typeClass = `type-${f.type}`;
     const sectionClass = `section-${f.section || 'custom'}`;
     const sectionLabels = {
-      work: 'Work', location: 'Location', pipe: 'Pipe', restoration: 'Restoration',
+      work: 'Work', location: 'Location', pipe: 'Pipe', joints: 'Joints & Testing',
+      excavation: 'Excavation', restoration: 'Restoration', hydro: 'Hydro Test',
       fittings: 'Fittings', manpower: 'Manpower',
       contractor: 'Contractor', remarks: 'Remarks', custom: 'Custom'
     };
@@ -497,6 +562,99 @@ function closeModal(id) {
 }
 
 /* =============================================
+   WHATSAPP TEMPLATE EDITOR  (Admin — full control)
+   ============================================= */
+const SAMPLE_DPR_RECORD = {
+  date: new Date().toISOString().slice(0, 10),
+  sno: 128,
+  engineerName: 'R. Sharma',
+  workType: 'Pipe Laying',
+  layingWork: 'Distribution Main',
+  packageNo: 4,
+  zoneName: 'Tara Hall-New Tank',
+  zoneNo: 16,
+  dma: 2,
+  stretch: '',
+  pipeDia: '110',
+  layingLength: 42.5,
+  joints: 6,
+  restoredLength: '', restoredWidth: '', restoredArea: '', surfaceType: '',
+  testedLength: '', testPressure: '', startTime: '', endTime: '', testResult: '',
+  ferrule: '', ballValve: '', meterBox: '', waterMeter: '',
+  excavLength: 42.5, excavWidth: 0.6, excavDepth: 0.9, excavVolume: 22.95,
+  noOfTeam: 2, welder: 1, fitter: 2, unskilledLabour: 4, manpower: 7, workTime: 6.5,
+  contractor: 'SAI',
+  remark: 'Work completed as planned, no issues.',
+  customFields: { 'Weather': 'Clear' }
+};
+
+function renderTokenList() {
+  const wrap = document.getElementById('wt_tokenList');
+  if (!wrap) return;
+  const tokens = getAvailableTokens().concat([{ id: 'customFields', label: 'Custom Fields (block)' }]);
+  wrap.innerHTML = tokens.map(t => `
+    <button type="button" class="sw-btn sw-btn-ghost sw-btn-sm wt-token-btn" data-token="${t.id}" title="Insert {{${t.id}}}">
+      ${AppUtils.esc(t.label)}
+    </button>
+  `).join('');
+  wrap.querySelectorAll('.wt-token-btn').forEach(btn => {
+    btn.addEventListener('click', () => insertTokenAtCursor(`{{${btn.dataset.token}}}`));
+  });
+}
+
+function insertTokenAtCursor(token) {
+  const ta = document.getElementById('wt_editor');
+  if (!ta) return;
+  const start = ta.selectionStart || 0;
+  const end = ta.selectionEnd || 0;
+  ta.value = ta.value.slice(0, start) + token + ta.value.slice(end);
+  const pos = start + token.length;
+  ta.focus();
+  ta.setSelectionRange(pos, pos);
+}
+
+async function initWhatsappTemplateTab() {
+  const ta = document.getElementById('wt_editor');
+  if (!ta) return;
+
+  renderTokenList();
+
+  if (State.whatsappTemplate === undefined) await loadWhatsappTemplate();
+  ta.value = (State.whatsappTemplate && State.whatsappTemplate.trim()) ? State.whatsappTemplate : getDefaultTemplate();
+
+  const saveBtn = document.getElementById('wt_save');
+  const resetBtn = document.getElementById('wt_reset');
+  const previewBtn = document.getElementById('wt_preview');
+  const previewBox = document.getElementById('wt_previewBox');
+
+  if (saveBtn && !saveBtn.dataset.wired) {
+    saveBtn.dataset.wired = '1';
+    saveBtn.addEventListener('click', async () => {
+      AppUtils.setButtonLoading(saveBtn, true);
+      const ok = await saveWhatsappTemplate(ta.value);
+      AppUtils.setButtonLoading(saveBtn, false);
+      if (ok) AppUtils.toast('WhatsApp template saved — used for every share from now on.');
+    });
+  }
+
+  if (resetBtn && !resetBtn.dataset.wired) {
+    resetBtn.dataset.wired = '1';
+    resetBtn.addEventListener('click', () => {
+      ta.value = getDefaultTemplate();
+      AppUtils.toast('Loaded the default template — click Save Template to apply it.');
+    });
+  }
+
+  if (previewBtn && !previewBtn.dataset.wired) {
+    previewBtn.dataset.wired = '1';
+    previewBtn.addEventListener('click', () => {
+      previewBox.textContent = renderTemplate(ta.value, SAMPLE_DPR_RECORD);
+      previewBox.classList.remove('hidden');
+    });
+  }
+}
+
+/* =============================================
    ADMIN NAVIGATION
    ============================================= */
 function setupAdminNav() {
@@ -513,6 +671,8 @@ function setupAdminNav() {
       document.querySelectorAll('.admin-subview').forEach(v => v.classList.remove('active'));
       const subview = document.getElementById(`admin-${tab}`);
       if (subview) subview.classList.add('active');
+
+      if (tab === 'whatsapp-template') initWhatsappTemplateTab();
     });
   });
 }

@@ -5,9 +5,9 @@
    - data-module-> openModule(workType)  (locked module form)
    ============================================= */
 
-import { navigateTo } from './app.js?v=16';
-import { openModule } from './dpr.js?v=16';
-import { State } from './auth.js?v=16';
+import { navigateTo } from './app.js?v=18';
+import { openModule } from './dpr.js?v=18';
+import { State } from './auth.js?v=18';
 
 const drawer = document.getElementById('navDrawer');
 const backdrop = document.getElementById('drawerBackdrop');

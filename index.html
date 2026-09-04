@@ -40,13 +40,15 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=15">
-  <link rel="stylesheet" href="css/dashboard.css?v=15">
-  <link rel="stylesheet" href="css/forms.css?v=15">
-  <link rel="stylesheet" href="css/admin.css?v=15">
+  <link rel="stylesheet" href="css/style.css?v=18">
+  <link rel="stylesheet" href="css/dashboard.css?v=18">
+  <link rel="stylesheet" href="css/forms.css?v=18">
+  <link rel="stylesheet" href="css/admin.css?v=18">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
@@ -280,7 +282,10 @@
             <option value="work">Work Details</option>
             <option value="location">Location</option>
             <option value="pipe">Pipe Specification</option>
+            <option value="joints">Joints, Welding &amp; Testing</option>
+            <option value="excavation">Excavation Details</option>
             <option value="restoration">Restoration</option>
+            <option value="hydro">Hydro Test</option>
             <option value="fittings">Fittings &amp; Meters</option>
             <option value="manpower">Manpower &amp; Time</option>
             <option value="contractor">Contractor</option>
@@ -565,21 +570,71 @@
                 </select>
               </div>
               <div class="field" id="field-layingLength">
-                <label for="f_layingLength">Laying Length <span class="req">*</span></label>
+                <label for="f_layingLength">Pipe Laying Quantity <span class="req">*</span></label>
                 <div class="unit-wrap">
                   <input type="number" id="f_layingLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00" required>
-                  <span>metres</span>
+                  <span>RM</span>
                 </div>
               </div>
             </div>
-            <div class="field" id="field-joints">
-              <label for="f_joints">Number of Joints <span class="req">*</span></label>
-              <input type="number" id="f_joints" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+            <div class="field" id="field-pipeMaterial">
+              <label for="f_pipeMaterial">Pipe Type / Material <span class="opt">optional</span></label>
+              <input type="text" id="f_pipeMaterial" class="sw-input" placeholder="e.g. DI, MS, HDPE" maxlength="60">
             </div>
           </div>
         </div>
 
-        <!-- Excavation Card (Pipe Laying only) -->
+        <!-- Joints, Welding & Testing Card (Distribution Main / Transmission Main only) -->
+        <div class="sw-card" id="card-joints">
+          <div class="sw-card-head" style="--accent: var(--app-sky); --accent-light: var(--app-sky-light);">
+            <div class="ic"><i class="fa-solid fa-link"></i></div>
+            <div>
+              <h2 id="jointsCardTitle">Joints, Welding &amp; Testing</h2>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="row2">
+              <div class="field" id="field-joints">
+                <label for="f_joints" id="jointsFieldLabel">Number of Joints Welded <span class="req">*</span></label>
+                <input type="number" id="f_joints" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+              </div>
+              <div class="field" id="field-fittingsInstalled">
+                <label for="f_fittingsInstalled">Fittings Installed <span class="opt">optional</span></label>
+                <input type="number" id="f_fittingsInstalled" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+            </div>
+            <div class="field" id="field-jointType">
+              <label for="f_jointType">Joint Type / Remarks <span class="opt">optional</span></label>
+              <input type="text" id="f_jointType" class="sw-input" placeholder="e.g. Butt weld, Socket fusion" maxlength="120">
+            </div>
+            <div class="row3">
+              <div class="field" id="field-bendQty">
+                <label for="f_bendQty">Bend <span class="opt">optional</span></label>
+                <input type="number" id="f_bendQty" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+              <div class="field" id="field-teeQty">
+                <label for="f_teeQty">Tee <span class="opt">optional</span></label>
+                <input type="number" id="f_teeQty" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+              <div class="field" id="field-uclampQty">
+                <label for="f_uclampQty">U-Clamp Fixing <span class="opt">optional</span></label>
+                <input type="number" id="f_uclampQty" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+            </div>
+            <div class="row2">
+              <div class="field" id="field-dptJoints">
+                <label for="f_dptJoints">DPT Done &ndash; No. of Joints <span class="opt">optional</span></label>
+                <input type="number" id="f_dptJoints" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+              <div class="field" id="field-utJoints">
+                <label for="f_utJoints">UT Done &ndash; No. of Joints <span class="opt">optional</span></label>
+                <input type="number" id="f_utJoints" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Excavation Card (Pipe Laying only, opt-in) -->
         <div class="sw-card" id="card-excavation">
           <div class="sw-card-head" style="--accent: var(--app-slate); --accent-light: var(--app-slate-light);">
             <div class="ic"><i class="fa-solid fa-shovel"></i></div>
@@ -589,25 +644,30 @@
             </div>
           </div>
           <div class="sw-card-body">
+            <label class="sw-checkbox-row" for="f_hasExcavation" style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--app-ink);cursor:pointer;">
+              <input type="checkbox" id="f_hasExcavation" style="width:18px;height:18px;accent-color:var(--app-teal);">
+              This work included excavation
+            </label>
+            <div id="excavationFields" class="card-animate hidden">
             <div class="row3">
               <div class="field" id="field-excavLength">
-                <label for="f_excavLength">Excavation Length <span class="req">*</span></label>
+                <label for="f_excavLength">Excavation Length <span class="opt">optional</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_excavLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00" required>
+                  <input type="number" id="f_excavLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00">
                   <span>m</span>
                 </div>
               </div>
               <div class="field" id="field-excavWidth">
-                <label for="f_excavWidth">Excavation Width <span class="req">*</span></label>
+                <label for="f_excavWidth">Excavation Width <span class="opt">optional</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_excavWidth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00" required>
+                  <input type="number" id="f_excavWidth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00">
                   <span>m</span>
                 </div>
               </div>
               <div class="field" id="field-excavDepth">
-                <label for="f_excavDepth">Excavation Depth <span class="req">*</span></label>
+                <label for="f_excavDepth">Excavation Depth <span class="opt">optional</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_excavDepth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00" required>
+                  <input type="number" id="f_excavDepth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00">
                   <span>m</span>
                 </div>
               </div>
@@ -618,6 +678,7 @@
                 <input type="number" id="f_excavVolume" class="sw-input" readonly placeholder="0.00">
                 <span>m&sup3;</span>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -846,6 +907,13 @@
           <button type="button" class="sw-btn sw-btn-ghost sw-btn-block" id="resetBtn">Clear form</button>
         </div>
       </form>
+
+      <!-- Always-reachable Save bar (mobile-friendly on a long form) -->
+      <div class="sticky-save-bar" id="stickySaveBar">
+        <button type="button" class="sw-btn sw-btn-primary sw-btn-block" id="stickySaveBtn">
+          <i class="fa-solid fa-check"></i> <span id="stickySaveBtnLabel">Save Report</span>
+        </button>
+      </div>
     </section>
 
     <!-- ================= LOG VIEW ================= -->
@@ -1138,6 +1206,9 @@
         <button class="admin-nav-btn" data-admin-tab="dropdowns">
           <i class="fa-solid fa-list-ul"></i> Dropdowns
         </button>
+        <button class="admin-nav-btn" data-admin-tab="whatsapp-template">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp Template
+        </button>
         <button class="admin-nav-btn" data-admin-tab="settings">
           <i class="fa-solid fa-gear"></i> Settings
         </button>
@@ -1209,7 +1280,10 @@
                     <option value="work">Work Details</option>
                     <option value="location">Location</option>
                     <option value="pipe">Pipe Specification</option>
+                    <option value="joints">Joints, Welding &amp; Testing</option>
+                    <option value="excavation">Excavation Details</option>
                     <option value="restoration">Restoration</option>
+                    <option value="hydro">Hydro Test</option>
                     <option value="fittings">Fittings &amp; Meters</option>
                     <option value="manpower">Manpower &amp; Time</option>
                     <option value="contractor">Contractor</option>
@@ -1273,6 +1347,44 @@
         </div>
       </div>
 
+      <!-- WhatsApp Template Sub-view -->
+      <div class="admin-subview" id="admin-whatsapp-template">
+        <div class="sw-card">
+          <div class="sw-card-head" style="--accent: #25D366; --accent-light: #E7F9EF;">
+            <div class="ic"><i class="fa-brands fa-whatsapp"></i></div>
+            <div>
+              <h2>WhatsApp Report Template</h2>
+              <p class="hint">Full control over the shared report's wording &amp; layout — use tokens below, any line whose only content is empty tokens is skipped automatically.</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div class="field">
+              <label for="wt_editor">Template</label>
+              <textarea id="wt_editor" class="sw-textarea" rows="18" style="font-family: var(--font-mono); font-size: 12.5px; line-height:1.6;" spellcheck="false"></textarea>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+              <button class="sw-btn sw-btn-primary" id="wt_save"><i class="fa-solid fa-save"></i> Save Template</button>
+              <button class="sw-btn sw-btn-ghost" id="wt_reset"><i class="fa-solid fa-rotate-left"></i> Reset to Default</button>
+              <button class="sw-btn sw-btn-info" id="wt_preview"><i class="fa-solid fa-eye"></i> Preview with Sample Data</button>
+            </div>
+            <div id="wt_previewBox" class="hidden" style="margin-top:14px; padding:14px; background:#F7F9F8; border:1px solid var(--app-line); border-radius:10px; white-space:pre-wrap; font-size:13px; line-height:1.6;"></div>
+          </div>
+        </div>
+
+        <div class="sw-card">
+          <div class="sw-card-head" style="--accent: var(--app-sky); --accent-light: var(--app-sky-light);">
+            <div class="ic"><i class="fa-solid fa-code"></i></div>
+            <div>
+              <h2>Available Tokens</h2>
+              <p class="hint">Tap a token to insert it at your cursor. Custom admin fields are inserted together via {{customFields}}.</p>
+            </div>
+          </div>
+          <div class="sw-card-body">
+            <div id="wt_tokenList" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="admin-subview" id="admin-settings">
         <div class="sw-card">
           <div class="sw-card-head" style="--accent: var(--app-amber); --accent-light: var(--app-amber-light);">
@@ -1325,17 +1437,17 @@
   }, 9000);
 })();
 </script>
-<script type="module" src="js/firebase.js?v=16"></script>
-<script type="module" src="js/auth.js?v=16"></script>
-<script type="module" src="js/app.js?v=16"></script>
-<script type="module" src="js/dpr.js?v=16"></script>
-<script type="module" src="js/dashboard.js?v=16"></script>
-<script type="module" src="js/engineers.js?v=16"></script>
-<script type="module" src="js/reports.js?v=16"></script>
-<script type="module" src="js/field-editor.js?v=16"></script>
-<script type="module" src="js/dropdowns.js?v=16"></script>
-<script type="module" src="js/export.js?v=16"></script>
-<script type="module" src="js/menu.js?v=16"></script>
+<script type="module" src="js/firebase.js?v=18"></script>
+<script type="module" src="js/auth.js?v=18"></script>
+<script type="module" src="js/app.js?v=18"></script>
+<script type="module" src="js/dpr.js?v=18"></script>
+<script type="module" src="js/dashboard.js?v=18"></script>
+<script type="module" src="js/engineers.js?v=18"></script>
+<script type="module" src="js/reports.js?v=18"></script>
+<script type="module" src="js/field-editor.js?v=18"></script>
+<script type="module" src="js/dropdowns.js?v=18"></script>
+<script type="module" src="js/export.js?v=18"></script>
+<script type="module" src="js/menu.js?v=18"></script>
 
 <!-- ==================== PWA: service worker + install ==================== -->
 <script>

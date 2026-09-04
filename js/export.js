@@ -3,8 +3,8 @@
    CSV Export | Excel Export with SheetJS | Dynamic Columns
    ============================================= */
 
-import { State } from './auth.js?v=16';
-import { AppUtils } from './app.js?v=16';
+import { State } from './auth.js?v=18';
+import { AppUtils } from './app.js?v=18';
 
 /* =============================================
    GET FILTERED DATA
@@ -99,11 +99,23 @@ function getColumnDefinitions() {
   if (hasPipe && hasPipe.visible !== false && (allMods || mod === 'Pipe Laying' || mod === 'Hydro Test')) {
     columns.push({ key: 'pipeDia', label: 'Pipe Dia (mm)', width: 14 });
     columns.push({ key: 'layingLength', label: 'Laying Length (m)', width: 16 });
+    if (allMods || mod === 'Pipe Laying') columns.push({ key: 'pipeMaterial', label: 'Pipe Material', width: 14 });
   }
 
-  // Joints & Excavation (Pipe Laying only)
+  // Joints, Welding & Testing (Pipe Laying only)
   if (allMods || mod === 'Pipe Laying') {
     columns.push({ key: 'joints', label: 'No. of Joints', width: 12 });
+    columns.push({ key: 'jointType', label: 'Joint Type', width: 16 });
+    columns.push({ key: 'bendQty', label: 'Bend', width: 8 });
+    columns.push({ key: 'teeQty', label: 'Tee', width: 8 });
+    columns.push({ key: 'uclampQty', label: 'U-Clamp Fixing', width: 12 });
+    columns.push({ key: 'dptJoints', label: 'DPT Joints', width: 12 });
+    columns.push({ key: 'utJoints', label: 'UT Joints', width: 12 });
+    columns.push({ key: 'fittingsInstalled', label: 'Fittings Installed', width: 14 });
+  }
+
+  // Excavation (Pipe Laying only)
+  if (allMods || mod === 'Pipe Laying') {
     columns.push({ key: 'excavLength', label: 'Excavation Length (m)', width: 16 });
     columns.push({ key: 'excavWidth', label: 'Excavation Width (m)', width: 16 });
     columns.push({ key: 'excavDepth', label: 'Excavation Depth (m)', width: 16 });
@@ -181,7 +193,9 @@ function getColumnDefinitions() {
   const FIELDID_BY_COLKEY = {
     sno: 'sno', date: 'date', month: 'month', workType: 'worktype', layingWork: 'layingWork',
     packageNo: 'package', zoneName: 'zone', dma: 'dma', stretch: 'stretch',
-    pipeDia: 'pipeDia', layingLength: 'layingLength', joints: 'joints',
+    pipeDia: 'pipeDia', layingLength: 'layingLength', pipeMaterial: 'pipeMaterial',
+    joints: 'joints', jointType: 'jointType', bendQty: 'bendQty', teeQty: 'teeQty', uclampQty: 'uclampQty',
+    dptJoints: 'dptJoints', utJoints: 'utJoints', fittingsInstalled: 'fittingsInstalled',
     excavLength: 'excavLength', excavWidth: 'excavWidth', excavDepth: 'excavDepth', excavVolume: 'excavVolume',
     restoredLength: 'restoredLength', restoredWidth: 'restoredWidth',
     ferrule: 'ferrule', ballValve: 'ballValve', meterBox: 'meterBox', waterMeter: 'waterMeter',

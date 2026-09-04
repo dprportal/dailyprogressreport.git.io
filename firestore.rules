@@ -1,60 +1,60 @@
 rules_version = '2';
 
-// ============================================================
-//  Firestore security rules for the DPR Management app.
-//
-//  Auth model:
-//   - Admins sign in with Firebase Email/Password.
-//   - Field engineers are NOT Firebase-authenticated; they pick a
-//     profile and enter a numeric PIN that is checked against the
-//     `engineers` collection on the client.
-//
-//  Therefore engineers must be able to read `engineers` and
-//  read/write `dprEntries` while unauthenticated. Only signed-in
-//  admins can manage engineers, field definitions, settings and
-//  delete DPR entries.
-//
-//  This is a pragmatic ruleset for an internal tool. See README for
-//  how to harden it (e.g. move engineers onto real Firebase Auth).
-// ============================================================
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSignedIn() {
-      return request.auth != null;
+    // Is the request coming from a signed-in Firebase Auth user
+    // whose users/{uid} doc has role == 'admin'?
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Admin role docs — each admin can read/write only their own doc.
-    match /users/{userId} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    // ---- users (admin accounts) ----
+    // A signed-in user may read/create only their own role doc
+    // (needed so the app can confirm "am I an admin?" right after login,
+    // and so the very first admin bootstrap login can create it).
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update, delete: if isAdmin();
     }
 
-    // Engineer profiles — public read (picker + PIN check); admin-only write.
-    match /engineers/{id} {
+    // ---- engineers ----
+    // Engineers sign in with a profile + PIN checked client-side (no Firebase
+    // Auth), so the list must be readable without auth. Only an admin may
+    // create/edit/delete profiles.
+    match /engineers/{engId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // DPR entries — engineers submit without Firebase auth; only admins edit/delete.
-    match /dprEntries/{id} {
+    // ---- DPR entries ----
+    // Same reasoning: engineers submit/edit their own entries without
+    // Firebase Auth, so reads/writes stay open at the document level; the
+    // app itself enforces "only admin or the original author may edit".
+    match /dprEntries/{docId} {
       allow read: if true;
       allow create: if true;
-      allow update, delete: if isSignedIn();
+      allow update, delete: if true;
     }
 
-    // Field definitions (dynamic form schema) — public read; admin-only write.
-    match /fieldDefinitions/{id} {
+    // ---- field definitions (Admin → Field Editor) ----
+    match /fieldDefinitions/{docId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // App settings — public read; admin-only write.
-    match /settings/{id} {
+    // ---- dropdown options / app settings ----
+    match /settings/{docId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Everything else is denied by default.
+    // Deny everything else by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

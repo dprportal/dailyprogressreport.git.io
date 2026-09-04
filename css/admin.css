@@ -356,6 +356,9 @@
    RESTORATION SECTION + WORK TYPE FILTER BADGE (appended)
    ============================================================ */
 .section-badge.section-restoration { background: var(--app-amber-light); color: var(--app-amber); }
+.section-badge.section-joints { background: var(--app-sky-light); color: var(--app-sky); }
+.section-badge.section-excavation { background: var(--app-slate-light); color: var(--app-slate); }
+.section-badge.section-hydro { background: var(--app-moss-light); color: var(--app-moss); }
 
 /* Work-type filter badge in the field list (distinct from laying-work badge) */
 .laying-filter-badge.worktype-badge {
