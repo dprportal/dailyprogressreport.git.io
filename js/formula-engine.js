@@ -128,6 +128,28 @@ export function evaluateFormula(formula, values) {
   }
 }
 
+// --- Inline arithmetic (typed directly into a number field) --------------
+// Lets a user type e.g. "1.2*0.6*0.9" straight into any number field (to
+// work out an m3 / area figure on the spot) instead of only via an admin
+// "calculated field" formula. Deliberately rejects any field-reference
+// token (bare word) — a raw entry field must be pure arithmetic, never a
+// formula referencing other fields — so something like "abc" or a stray
+// field id typed by mistake safely returns null instead of silently
+// evaluating to 0.
+export function evaluateArithmetic(str) {
+  const s = String(str == null ? '' : str).trim();
+  if (!s) return null;
+  try {
+    const tokens = tokenizeFormula(s);
+    if (!tokens.length || tokens.some(t => t.type === 'ref')) return null;
+    const ast = parseFormula(s);
+    const result = evaluateAst(ast, {});
+    return (result === null || !Number.isFinite(result)) ? null : result;
+  } catch (e) {
+    return null;
+  }
+}
+
 // Collects every field id referenced by a formula (for validation,
 // circular-dependency checks, and formula-builder round-tripping).
 export function extractRefs(ast, out) {

@@ -3,8 +3,9 @@
    Navigation | Utilities | Toast | Modals | Initialization
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=20';
-import { State, Utils } from './auth.js?v=20';
+import { DataService, COLLECTIONS } from './firebase.js?v=22';
+import { State, Utils } from './auth.js?v=22';
+import { evaluateArithmetic } from './formula-engine.js?v=22';
 
 // How many most-recent DPR records to load on boot. Keeps Firestore reads
 // bounded (and load fast) no matter how many years of data accumulate.
@@ -98,6 +99,52 @@ const AppUtils = {
   cleanNum(v) {
     const n = Number(v);
     return isNaN(n) ? 0 : Math.max(0, n);
+  },
+
+  /* =============================================
+     INLINE CALCULATOR FOR NUMBER FIELDS
+     Any field carrying the "js-calc-input" class becomes a mini
+     calculator: while typing, only digits/operators/parens are
+     accepted (so "+", "-", "*", "/" all work — unlike a native
+     <input type="number">, which silently blocks "*" and "/"
+     outright); on blur/Enter, a typed expression such as
+     "1.2*0.6*0.9" (handy for working out an m3/area figure right
+     in the field) is evaluated and replaced with its result.
+     A plain number is left as-is (just non-negative clamped).
+     ============================================= */
+  numericExprKeydownGuard(e) {
+    if (e.ctrlKey || e.metaKey) return; // let copy/paste/select-all etc. through
+    if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); return; }
+    const navKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab', 'Home', 'End', 'Escape'];
+    if (navKeys.includes(e.key)) return;
+    if (e.key.length === 1 && !/^[0-9.+\-*/() ]$/.test(e.key)) e.preventDefault();
+  },
+
+  resolveNumericExprOnBlur(e) {
+    const el = e.target;
+    const raw = (el.value || '').trim();
+    el.classList.remove('invalid');
+    if (!raw) return;
+
+    // A plain (optionally negative) number needs no evaluation — just clamp.
+    if (/^-?\d*\.?\d+$/.test(raw)) {
+      if (Number(raw) < 0) {
+        el.value = '0';
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      return;
+    }
+
+    const result = evaluateArithmetic(raw);
+    if (result === null) {
+      // Couldn't parse as arithmetic — flag it and leave the text for the
+      // user to fix rather than silently discarding what they typed.
+      el.classList.add('invalid');
+      return;
+    }
+    const rounded = Math.max(0, Math.round(result * 1000) / 1000);
+    el.value = String(rounded);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
   },
 
   debounce(fn, delay) {
@@ -318,6 +365,20 @@ function setupEventListeners() {
   if (confirmCancel) {
     confirmCancel.addEventListener('click', () => closeModal('modal-confirm'));
   }
+
+  // Inline calculator — delegated so it covers every "js-calc-input" field,
+  // including custom number fields the admin adds later and re-rendered
+  // fields, without wiring each one individually.
+  document.addEventListener('keydown', (e) => {
+    if (e.target && e.target.matches && e.target.matches('.js-calc-input')) {
+      AppUtils.numericExprKeydownGuard(e);
+    }
+  });
+  document.addEventListener('focusout', (e) => {
+    if (e.target && e.target.matches && e.target.matches('.js-calc-input')) {
+      AppUtils.resolveNumericExprOnBlur(e);
+    }
+  });
 }
 
 /* =============================================

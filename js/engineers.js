@@ -3,9 +3,9 @@
    CRUD | Validation | Auto-refresh | Statistics
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=20';
-import { State, Utils } from './auth.js?v=20';
-import { AppUtils } from './app.js?v=20';
+import { DataService, COLLECTIONS } from './firebase.js?v=22';
+import { State, Utils } from './auth.js?v=22';
+import { AppUtils } from './app.js?v=22';
 
 /* =============================================
    ENGINEER STATS

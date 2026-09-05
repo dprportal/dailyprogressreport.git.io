@@ -2,6 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- Apply saved theme before first paint (avoids a light/dark flash) -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('dpr-theme');
+        var theme = saved || ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
   <meta name="theme-color" content="#0E6B66">
   <meta name="description" content="Shimla 24x7 Water Supply Project - DPR Management System">
@@ -45,10 +55,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/style.css?v=20">
-  <link rel="stylesheet" href="css/dashboard.css?v=20">
-  <link rel="stylesheet" href="css/forms.css?v=20">
-  <link rel="stylesheet" href="css/admin.css?v=20">
+  <link rel="stylesheet" href="css/style.css?v=22">
+  <link rel="stylesheet" href="css/dashboard.css?v=22">
+  <link rel="stylesheet" href="css/forms.css?v=22">
+  <link rel="stylesheet" href="css/admin.css?v=22">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
@@ -94,6 +104,7 @@
   <div class="login-wrap">
     <div class="login-card">
       <div class="login-brand">
+        <div class="suez-logo-3d"><img src="icons/suez-logo.png?v=1" alt="SUEZ"></div>
         <div class="login-logo"><svg class="brand-logo" aria-hidden="true"><use href="#logo-drop"></use></svg></div>
         <h1>Shimla 24x7 Water Supply Project</h1>
         <p>Daily Progress Report Management System</p>
@@ -391,6 +402,7 @@
   <!-- Navigation drawer -->
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <aside class="drawer" id="navDrawer" aria-label="Main navigation">
+    <div class="drawer-suez-logo"><div class="suez-logo-3d"><img src="icons/suez-logo.png?v=1" alt="SUEZ"></div></div>
     <div class="drawer-head">
       <div class="drawer-logo"><svg class="brand-logo" aria-hidden="true"><use href="#logo-drop"></use></svg></div>
       <div class="drawer-title">
@@ -427,6 +439,7 @@
         <i class="fa-solid fa-bars"></i>
       </button>
       <div class="topbar-left">
+        <div class="suez-logo-3d"><img src="icons/suez-logo.png?v=1" alt="SUEZ"></div>
         <div class="topbar-logo"><svg class="brand-logo" aria-hidden="true"><use href="#logo-drop"></use></svg></div>
         <div class="topbar-brand">
         <p class="eyebrow">Shimla 24x7 Water Supply Project</p>
@@ -437,6 +450,10 @@
       <div class="topbar-user">
         <p class="who" id="whoami">--</p>
         <div class="topbar-actions">
+          <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Switch light/dark theme">
+            <i class="fa-solid fa-moon"></i>
+            <i class="fa-solid fa-sun"></i>
+          </button>
           <button type="button" class="sw-btn sw-btn-ghost sw-btn-sm install-btn" id="installBtnTop" data-install-btn hidden title="Install app">
             <i class="fa-solid fa-download"></i> <span class="install-label">Install</span>
           </button>
@@ -593,7 +610,7 @@
               <div class="field" id="field-layingLength">
                 <label for="f_layingLength">Pipe Laying Quantity <span class="req">*</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_layingLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00" required>
+                  <input type="text" id="f_layingLength" class="sw-input js-calc-input" placeholder="0.00" required>
                   <span>RM</span>
                 </div>
               </div>
@@ -617,11 +634,11 @@
             <div class="row2">
               <div class="field" id="field-joints">
                 <label for="f_joints" id="jointsFieldLabel">Number of Joints Welded <span class="req">*</span></label>
-                <input type="number" id="f_joints" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+                <input type="text" id="f_joints" class="sw-input js-calc-input" placeholder="0" required>
               </div>
               <div class="field" id="field-fittingsInstalled">
                 <label for="f_fittingsInstalled">Fittings Installed <span class="opt">optional</span></label>
-                <input type="number" id="f_fittingsInstalled" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_fittingsInstalled" class="sw-input js-calc-input" placeholder="0">
               </div>
             </div>
             <div class="field" id="field-jointType">
@@ -631,25 +648,25 @@
             <div class="row3">
               <div class="field" id="field-bendQty">
                 <label for="f_bendQty">Bend <span class="opt">optional</span></label>
-                <input type="number" id="f_bendQty" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_bendQty" class="sw-input js-calc-input" placeholder="0">
               </div>
               <div class="field" id="field-teeQty">
                 <label for="f_teeQty">Tee <span class="opt">optional</span></label>
-                <input type="number" id="f_teeQty" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_teeQty" class="sw-input js-calc-input" placeholder="0">
               </div>
               <div class="field" id="field-uclampQty">
                 <label for="f_uclampQty">U-Clamp Fixing <span class="opt">optional</span></label>
-                <input type="number" id="f_uclampQty" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_uclampQty" class="sw-input js-calc-input" placeholder="0">
               </div>
             </div>
             <div class="row2">
               <div class="field" id="field-dptJoints">
                 <label for="f_dptJoints">DPT Done &ndash; No. of Joints <span class="opt">optional</span></label>
-                <input type="number" id="f_dptJoints" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_dptJoints" class="sw-input js-calc-input" placeholder="0">
               </div>
               <div class="field" id="field-utJoints">
                 <label for="f_utJoints">UT Done &ndash; No. of Joints <span class="opt">optional</span></label>
-                <input type="number" id="f_utJoints" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_utJoints" class="sw-input js-calc-input" placeholder="0">
               </div>
             </div>
           </div>
@@ -674,21 +691,21 @@
               <div class="field" id="field-excavLength">
                 <label for="f_excavLength">Excavation Length <span class="opt">optional</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_excavLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00">
+                  <input type="text" id="f_excavLength" class="sw-input js-calc-input" placeholder="0.00">
                   <span>m</span>
                 </div>
               </div>
               <div class="field" id="field-excavWidth">
                 <label for="f_excavWidth">Excavation Width <span class="opt">optional</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_excavWidth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00">
+                  <input type="text" id="f_excavWidth" class="sw-input js-calc-input" placeholder="0.00">
                   <span>m</span>
                 </div>
               </div>
               <div class="field" id="field-excavDepth">
                 <label for="f_excavDepth">Excavation Depth <span class="opt">optional</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_excavDepth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00">
+                  <input type="text" id="f_excavDepth" class="sw-input js-calc-input" placeholder="0.00">
                   <span>m</span>
                 </div>
               </div>
@@ -717,21 +734,21 @@
             <div class="row2">
               <div class="field" id="field-ferrule">
                 <label for="f_ferrule">Ferrule <span class="opt">optional</span></label>
-                <input type="number" id="f_ferrule" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_ferrule" class="sw-input js-calc-input" placeholder="0">
               </div>
               <div class="field" id="field-ballValve">
                 <label for="f_ballValve">Ball Valve <span class="opt">optional</span></label>
-                <input type="number" id="f_ballValve" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_ballValve" class="sw-input js-calc-input" placeholder="0">
               </div>
             </div>
             <div class="row2">
               <div class="field" id="field-meterBox">
                 <label for="f_meterBox">Meter Box <span class="opt">optional</span></label>
-                <input type="number" id="f_meterBox" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_meterBox" class="sw-input js-calc-input" placeholder="0">
               </div>
               <div class="field" id="field-waterMeter">
                 <label for="f_waterMeter">Water Meter <span class="opt">optional</span></label>
-                <input type="number" id="f_waterMeter" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="f_waterMeter" class="sw-input js-calc-input" placeholder="0">
               </div>
             </div>
           </div>
@@ -751,14 +768,14 @@
               <div class="field" id="field-restoredLength">
                 <label for="f_restoredLength">Restored Length <span class="req">*</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_restoredLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.0">
+                  <input type="text" id="f_restoredLength" class="sw-input js-calc-input" placeholder="0.0">
                   <span>metres</span>
                 </div>
               </div>
               <div class="field" id="field-restoredWidth">
                 <label for="f_restoredWidth">Restored Width <span class="req">*</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_restoredWidth" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.0">
+                  <input type="text" id="f_restoredWidth" class="sw-input js-calc-input" placeholder="0.0">
                   <span>metres</span>
                 </div>
               </div>
@@ -800,14 +817,14 @@
               <div class="field" id="field-testedLength">
                 <label for="f_testedLength">Tested Length <span class="req">*</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_testedLength" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.00">
+                  <input type="text" id="f_testedLength" class="sw-input js-calc-input" placeholder="0.00">
                   <span>metres</span>
                 </div>
               </div>
               <div class="field" id="field-testPressure">
                 <label for="f_testPressure">Test Pressure <span class="req">*</span></label>
                 <div class="unit-wrap">
-                  <input type="number" id="f_testPressure" class="sw-input" min="0" step="any" inputmode="decimal" placeholder="0.0">
+                  <input type="text" id="f_testPressure" class="sw-input js-calc-input" placeholder="0.0">
                   <span>Bar</span>
                 </div>
               </div>
@@ -848,21 +865,21 @@
             <div class="row3">
               <div class="field" id="field-noOfTeam">
                 <label for="f_noOfTeam">No of Team <span class="req">*</span></label>
-                <input type="number" id="f_noOfTeam" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+                <input type="text" id="f_noOfTeam" class="sw-input js-calc-input" placeholder="0" required>
               </div>
               <div class="field" id="field-welder">
                 <label for="f_welder">Welder (Skilled) <span class="req">*</span></label>
-                <input type="number" id="f_welder" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+                <input type="text" id="f_welder" class="sw-input js-calc-input" placeholder="0" required>
               </div>
               <div class="field" id="field-fitter">
                 <label for="f_fitter">Fitter (Skilled) <span class="req">*</span></label>
-                <input type="number" id="f_fitter" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+                <input type="text" id="f_fitter" class="sw-input js-calc-input" placeholder="0" required>
               </div>
             </div>
             <div class="row3">
               <div class="field" id="field-unskilledLabour">
                 <label for="f_unskilledLabour">Unskilled Labour <span class="req">*</span></label>
-                <input type="number" id="f_unskilledLabour" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" required>
+                <input type="text" id="f_unskilledLabour" class="sw-input js-calc-input" placeholder="0" required>
               </div>
               <div class="field" id="field-manpower">
                 <label for="f_manpower">Total Working Manpower <span class="opt">auto</span></label>
@@ -870,7 +887,7 @@
               </div>
               <div class="field" id="field-workTime">
                 <label for="f_workTime">Work Time (Hours) <span class="req">*</span></label>
-                <input type="number" id="f_workTime" class="sw-input" min="0" max="24" step="any" inputmode="decimal" placeholder="0.0" required>
+                <input type="text" id="f_workTime" class="sw-input js-calc-input" max="24" placeholder="0.0" required>
               </div>
             </div>
           </div>
@@ -1479,17 +1496,18 @@
   }, 9000);
 })();
 </script>
-<script type="module" src="js/firebase.js?v=20"></script>
-<script type="module" src="js/auth.js?v=20"></script>
-<script type="module" src="js/app.js?v=20"></script>
-<script type="module" src="js/dpr.js?v=20"></script>
-<script type="module" src="js/dashboard.js?v=20"></script>
-<script type="module" src="js/engineers.js?v=20"></script>
-<script type="module" src="js/reports.js?v=20"></script>
-<script type="module" src="js/field-editor.js?v=20"></script>
-<script type="module" src="js/dropdowns.js?v=20"></script>
-<script type="module" src="js/export.js?v=20"></script>
-<script type="module" src="js/menu.js?v=20"></script>
+<script type="module" src="js/firebase.js?v=22"></script>
+<script type="module" src="js/auth.js?v=22"></script>
+<script type="module" src="js/app.js?v=22"></script>
+<script type="module" src="js/dpr.js?v=22"></script>
+<script type="module" src="js/dashboard.js?v=22"></script>
+<script type="module" src="js/engineers.js?v=22"></script>
+<script type="module" src="js/reports.js?v=22"></script>
+<script type="module" src="js/field-editor.js?v=22"></script>
+<script type="module" src="js/dropdowns.js?v=22"></script>
+<script type="module" src="js/export.js?v=22"></script>
+<script type="module" src="js/menu.js?v=22"></script>
+<script type="module" src="js/theme.js?v=22"></script>
 
 <!-- ==================== PWA: service worker + install ==================== -->
 <script>

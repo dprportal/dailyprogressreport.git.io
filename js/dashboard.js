@@ -3,8 +3,8 @@
    Statistics | Chart.js Charts | Progress Bars
    ============================================= */
 
-import { State } from './auth.js?v=20';
-import { AppUtils } from './app.js?v=20';
+import { State } from './auth.js?v=22';
+import { AppUtils } from './app.js?v=22';
 
 /* =============================================
    CHART INSTANCES
@@ -401,6 +401,14 @@ function init() {
 
   window.addEventListener('app:boot', () => {
     // Pre-render if dashboard is default
+    if (State.currentPage === 'dash') {
+      render();
+    }
+  });
+
+  // Re-render so Chart.js text/grid colors pick up the new theme
+  // (theme.js updates Chart.defaults.color/borderColor right before this fires).
+  window.addEventListener('theme:changed', () => {
     if (State.currentPage === 'dash') {
       render();
     }

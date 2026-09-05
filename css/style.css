@@ -1111,7 +1111,7 @@ table.log th {
 table.log td { padding: 9px 8px; border-bottom: 1px solid var(--app-line); vertical-align: middle; color: var(--app-ink); }
 table.log tbody tr:hover { background: #FAFCFB; }
 
-.log-wrap { overflow-x: auto; border: 1px solid var(--app-line); border-radius: 12px; background: #fff; }
+.log-wrap { overflow-x: auto; border: 1px solid var(--app-line); border-radius: 12px; background: var(--app-surface); }
 
 .pill {
   display: inline-block;
@@ -1606,3 +1606,121 @@ nav.tabs { display: none !important; }   /* replaced by the drawer */
 #app, .app-content, .topbar, .view { max-width: 100%; }
 .app-content { overflow-x: clip; }      /* clip stray horizontal overflow, keeps sticky header working */
 .actions-row .sw-btn { flex: 0 1 auto; }
+
+/* ============================================================
+   DARK / LIGHT THEME
+   Everything in the app already reads its colors from the
+   --app-* tokens defined in :root, so a dark theme only needs
+   to redefine those tokens for html[data-theme="dark"] — every
+   card, input, badge and table picks it up automatically.
+   Toggled by js/theme.js; persisted in localStorage as "dpr-theme".
+   ============================================================ */
+html[data-theme="dark"] {
+  --app-bg: #0B1613;
+  --app-surface: #12211D;
+  --app-ink: #E9F3F0;
+  --app-muted: #9FB6B1;
+  --app-muted-2: #74928C;
+  --app-line: #23372F;
+  --app-shadow: 0 2px 18px rgba(0,0,0,.35);
+
+  --app-teal-light: #123A34;
+  --app-sky: #6BB0DA;
+  --app-sky-light: #142A38;
+  --app-slate: #B7C2C6;
+  --app-slate-light: #1E2629;
+  --app-amber: #E6B372;
+  --app-amber-light: #3A2A12;
+  --app-moss: #8ACB97;
+  --app-moss-light: #1B3320;
+  --app-rose: #E8977E;
+  --app-rose-light: #3A1D16;
+}
+
+/* A couple of spots still had a hardcoded light-mode assumption baked
+   into rgba() shadows/tints rather than a token — patch those directly. */
+html[data-theme="dark"] .sw-card { box-shadow: 0 2px 18px rgba(0,0,0,.4); }
+html[data-theme="dark"] .stat-pill,
+html[data-theme="dark"] .pill { background: var(--app-slate-light); }
+html[data-theme="dark"] select.sw-select { color-scheme: dark; }
+html[data-theme="dark"] input.sw-input,
+html[data-theme="dark"] input[type="date"],
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="number"] { color-scheme: dark; }
+
+/* ============================================================
+   THEME TOGGLE BUTTON (sun/moon)
+   ============================================================ */
+.theme-toggle-btn {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  cursor: pointer;
+  transition: background .15s ease, transform .15s ease;
+  flex: none;
+}
+.theme-toggle-btn:hover { background: rgba(255,255,255,.22); transform: translateY(-1px); }
+.theme-toggle-btn i { font-size: 14px; transition: transform .35s ease; }
+html[data-theme="dark"] .theme-toggle-btn i.fa-moon { display: none; }
+html[data-theme="light"] .theme-toggle-btn i.fa-sun,
+html:not([data-theme="dark"]) .theme-toggle-btn i.fa-sun { display: none; }
+html[data-theme="dark"] .theme-toggle-btn i.fa-sun { display: inline; }
+
+/* ============================================================
+   SUEZ 3D ANIMATED LOGO
+   A perspective wrapper + a gentle continuous rotateY/float on the
+   image itself gives the logo real depth without being distracting;
+   it eases to a bigger, snappier tilt on hover/tap.
+   ============================================================ */
+.suez-logo-3d {
+  display: inline-flex;
+  align-items: center;
+  perspective: 700px;
+  flex: none;
+}
+.suez-logo-3d img {
+  display: block;
+  height: 30px;
+  width: auto;
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,.25));
+  animation: suezLogo3dFloat 6s ease-in-out infinite;
+  will-change: transform;
+}
+.suez-logo-3d:hover img,
+.suez-logo-3d:focus-within img {
+  animation-play-state: paused;
+  transform: rotateY(22deg) rotateX(4deg) scale(1.08);
+  transition: transform .25s ease;
+}
+@keyframes suezLogo3dFloat {
+  0%   { transform: rotateY(0deg)   rotateX(0deg) translateY(0); }
+  25%  { transform: rotateY(18deg)  rotateX(3deg) translateY(-2px); }
+  50%  { transform: rotateY(0deg)   rotateX(0deg) translateY(0); }
+  75%  { transform: rotateY(-18deg) rotateX(3deg) translateY(-2px); }
+  100% { transform: rotateY(0deg)   rotateX(0deg) translateY(0); }
+}
+
+/* Larger version used on the login screen */
+.login-brand .suez-logo-3d { justify-content: center; margin-bottom: 10px; }
+.login-brand .suez-logo-3d img { height: 46px; }
+
+/* Sidebar drawer variant */
+.drawer-suez-logo { padding: 14px 18px 4px; display: flex; justify-content: center; }
+.drawer-suez-logo .suez-logo-3d img { height: 34px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.15)); }
+
+@media (max-width: 720px) {
+  .suez-logo-3d img { height: 24px; }
+  .login-brand .suez-logo-3d img { height: 38px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suez-logo-3d img { animation: none; }
+}

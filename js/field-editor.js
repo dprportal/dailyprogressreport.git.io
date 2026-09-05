@@ -3,11 +3,11 @@
    Admin Field Management | Drag & Drop | Dynamic Form Generation
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=20';
-import { State } from './auth.js?v=20';
-import { AppUtils } from './app.js?v=20';
-import { loadWhatsappTemplate, saveWhatsappTemplate, getDefaultTemplate, getAvailableTokens, renderTemplate } from './whatsapp-share.js?v=20';
-import { validateFormula, wouldCreateCircularDependency } from './formula-engine.js?v=20';
+import { DataService, COLLECTIONS } from './firebase.js?v=22';
+import { State } from './auth.js?v=22';
+import { AppUtils } from './app.js?v=22';
+import { loadWhatsappTemplate, saveWhatsappTemplate, getDefaultTemplate, getAvailableTokens, renderTemplate } from './whatsapp-share.js?v=22';
+import { validateFormula, wouldCreateCircularDependency } from './formula-engine.js?v=22';
 
 /* =============================================
    DEFAULT FIELD DEFINITIONS
@@ -38,6 +38,8 @@ const DEFAULT_FIELD_DEFS = [
   { fieldId: 'excavDepth', label: 'Excavation Depth', type: 'number', required: false, system: true, section: 'excavation', order: 2, visible: true, workType: 'Pipe Laying' },
   { fieldId: 'restoredLength', label: 'Restored Length', type: 'number', required: true, system: true, section: 'restoration', order: 0, visible: true, workType: 'Road Restoration' },
   { fieldId: 'restoredWidth', label: 'Restored Width', type: 'number', required: true, system: true, section: 'restoration', order: 1, visible: true, workType: 'Road Restoration' },
+  { fieldId: 'surfaceType', label: 'Surface Type', type: 'dropdown', required: true, system: true, section: 'restoration', order: 2, visible: true, workType: 'Road Restoration' },
+  { fieldId: 'restoredArea', label: 'Restored Area', type: 'number', required: false, system: true, section: 'restoration', order: 3, visible: true, workType: 'Road Restoration' },
   { fieldId: 'ferrule', label: 'Ferrule', type: 'number', required: false, system: true, section: 'fittings', order: 0, visible: true, layingWork: 'House Service Connection' },
   { fieldId: 'ballValve', label: 'Ball Valve', type: 'number', required: false, system: true, section: 'fittings', order: 1, visible: true, layingWork: 'House Service Connection' },
   { fieldId: 'meterBox', label: 'Meter Box', type: 'number', required: false, system: true, section: 'fittings', order: 2, visible: true, layingWork: 'House Service Connection' },

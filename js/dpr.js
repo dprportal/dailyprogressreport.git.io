@@ -3,10 +3,10 @@
    Dynamic Form | Field Visibility | CRUD | S.No Auto-increment
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=20';
-import { State } from './auth.js?v=20';
-import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=20';
-import { evaluateFormula } from './formula-engine.js?v=20';
+import { DataService, COLLECTIONS } from './firebase.js?v=22';
+import { State } from './auth.js?v=22';
+import { AppUtils, MASTER_DATA, navigateTo } from './app.js?v=22';
+import { evaluateFormula } from './formula-engine.js?v=22';
 
 /* =============================================
    FIELD VISIBILITY CONFIG  (driven by WORK TYPE)
@@ -67,6 +67,7 @@ const SYS_FIELD_WRAP = {
   uclampQty: 'field-uclampQty', dptJoints: 'field-dptJoints', utJoints: 'field-utJoints', fittingsInstalled: 'field-fittingsInstalled',
   excavLength: 'field-excavLength', excavWidth: 'field-excavWidth', excavDepth: 'field-excavDepth',
   restoredLength: 'field-restoredLength', restoredWidth: 'field-restoredWidth',
+  surfaceType: 'field-surfaceType', restoredArea: 'field-restoredArea',
   ferrule: 'field-ferrule', ballValve: 'field-ballValve', meterBox: 'field-meterBox', waterMeter: 'field-waterMeter',
   noOfTeam: 'field-noOfTeam', welder: 'field-welder', fitter: 'field-fitter', unskilledLabour: 'field-unskilledLabour',
   manpower: 'field-manpower', workTime: 'field-workTime',
@@ -79,6 +80,7 @@ const SYS_FIELD_INPUT = {
   uclampQty: 'f_uclampQty', dptJoints: 'f_dptJoints', utJoints: 'f_utJoints', fittingsInstalled: 'f_fittingsInstalled',
   excavLength: 'f_excavLength', excavWidth: 'f_excavWidth', excavDepth: 'f_excavDepth',
   restoredLength: 'f_restoredLength', restoredWidth: 'f_restoredWidth',
+  surfaceType: 'f_surfaceType', restoredArea: 'f_restoredArea',
   ferrule: 'f_ferrule', ballValve: 'f_ballValve', meterBox: 'f_meterBox', waterMeter: 'f_waterMeter',
   noOfTeam: 'f_noOfTeam', welder: 'f_welder', fitter: 'f_fitter', unskilledLabour: 'f_unskilledLabour',
   manpower: 'f_manpower', workTime: 'f_workTime',
@@ -171,8 +173,11 @@ function applyFieldDefsToForm() {
     if (def.fieldId === 'stretch') return;
 
     // For fields currently shown & enabled by the built-in logic, honour admin "required"
+    // — except Restored Area, which is always auto-computed/read-only and must
+    // never be forced required (it can legitimately be blank until both
+    // Restored Length and Width are filled in).
     if (!forceHide && input && !input.disabled) {
-      input.required = !!def.required;
+      input.required = (def.fieldId === 'restoredArea') ? false : !!def.required;
     }
 
     // Honour admin label rename in the form
@@ -503,7 +508,10 @@ function renderCustomField(fieldDef) {
       inputHtml = `<input type="text" id="${fieldId}" class="sw-input" placeholder="Enter ${AppUtils.esc(fieldDef.label)}" ${requiredAttr}>`;
       break;
     case 'number':
-      inputHtml = `<input type="number" id="${fieldId}" class="sw-input" min="0" step="1" inputmode="numeric" placeholder="0" ${requiredAttr}>`;
+      // "js-calc-input" lets the admin (or engineer) type an expression like
+      // "1.2*0.6*0.9" straight into the field to work out an m3/area figure —
+      // see app.js resolveNumericExprOnBlur / numericExprKeydownGuard.
+      inputHtml = `<input type="text" id="${fieldId}" class="sw-input js-calc-input" placeholder="0" ${requiredAttr}>`;
       break;
     case 'dropdown':
       inputHtml = `<select id="${fieldId}" class="sw-select" ${requiredAttr}><option value="" disabled selected>Select ${AppUtils.esc(fieldDef.label)}</option></select>`;
@@ -1137,17 +1145,10 @@ async function init() {
   const resetBtn = document.getElementById('resetBtn');
   if (resetBtn) resetBtn.addEventListener('click', fullReset);
 
-  // Numeric guards
-  ["f_layingLength", "f_joints", "f_excavLength", "f_excavWidth", "f_excavDepth",
-   "f_restoredLength", "f_restoredWidth", "f_noOfTeam", "f_welder", "f_fitter", "f_unskilledLabour",
-   "f_workTime", "f_ferrule", "f_ballValve", "f_meterBox", "f_waterMeter",
-   "f_bendQty", "f_teeQty", "f_uclampQty", "f_dptJoints", "f_utJoints", "f_fittingsInstalled"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("input", AppUtils.clampNonNegative);
-      el.addEventListener("keydown", AppUtils.preventMinus);
-    }
-  });
+  // Numeric guards — these fields carry the "js-calc-input" class in the
+  // HTML, so keydown filtering + "+"/"*"/"/" expression evaluation on blur
+  // (e.g. typing "1.2*0.6*0.9" to work out an m3 figure) is wired once,
+  // globally, by app.js. Nothing to attach per-field here any more.
 
   // Listen for boot
   window.addEventListener('app:boot', async () => {

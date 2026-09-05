@@ -3,7 +3,7 @@
    App-shell caching for speed & offline.
    Firebase Auth/Firestore traffic is never intercepted.
    ============================================= */
-const CACHE = 'dpr-shell-v7';
+const CACHE = 'dpr-shell-v9';
 
 const SHELL = [
   './',
@@ -25,11 +25,13 @@ const SHELL = [
   'js/export.js',
   'js/whatsapp-share.js',
   'js/formula-engine.js',
+  'js/theme.js',
   'og-image.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',
-  'icons/favicon.png'
+  'icons/favicon.png',
+  'icons/suez-logo.png'
 ];
 
 self.addEventListener('install', (event) => {

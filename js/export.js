@@ -3,8 +3,8 @@
    CSV Export | Excel Export with SheetJS | Dynamic Columns
    ============================================= */
 
-import { State } from './auth.js?v=20';
-import { AppUtils } from './app.js?v=20';
+import { State } from './auth.js?v=22';
+import { AppUtils } from './app.js?v=22';
 
 /* =============================================
    GET FILTERED DATA
@@ -69,6 +69,20 @@ function getColumnDefinitions() {
   const mod = moduleEl ? moduleEl.value : '';
   const allMods = !mod;
 
+  // "Laying Work" sub-filter (Distribution Main / Transmission Main /
+  // House Service Connection / Restoration). When the user narrows a
+  // download to one specific activity, the sheet should only carry the
+  // columns that activity actually uses — e.g. a "Pipe Laying + Distribution
+  // Main" download should not drag in HSC-only fittings (Ferrule/Ball
+  // Valve/Meter Box/Water Meter) or Transmission-only Stretch, even though
+  // both belong to the Pipe Laying module in general. An unset sub-filter
+  // ("All laying work") keeps the previous, broader behaviour.
+  const laying = (document.getElementById('filt_worktype') || {}).value || '';
+  const inPipeLaying = allMods || mod === 'Pipe Laying';
+  const isDistribution = !laying || laying === 'Distribution Main';
+  const isTransmission = !laying || laying === 'Transmission Main';
+  const isHSC = !laying || laying === 'House Service Connection';
+
   const columns = [
     { key: 'sno', label: 'S.No', width: 8 },
     { key: 'date', label: 'Date', width: 12 },
@@ -88,9 +102,9 @@ function getColumnDefinitions() {
     columns.push({ key: 'dma', label: 'DMA No.', width: 10 });
   }
 
-  // Transmission stretch
+  // Transmission stretch — Transmission Main only
   const hasStretch = fieldDefs.find(f => f.fieldId === 'stretch');
-  if (hasStretch && hasStretch.visible !== false) {
+  if (hasStretch && hasStretch.visible !== false && inPipeLaying && isTransmission) {
     columns.push({ key: 'stretch', label: 'Transmission Stretch', width: 30 });
   }
 
@@ -102,8 +116,8 @@ function getColumnDefinitions() {
     if (allMods || mod === 'Pipe Laying') columns.push({ key: 'pipeMaterial', label: 'Pipe Material', width: 14 });
   }
 
-  // Joints, Welding & Testing (Pipe Laying only)
-  if (allMods || mod === 'Pipe Laying') {
+  // Joints, Welding & Testing — Distribution Main / Transmission Main only
+  if (inPipeLaying && (isDistribution || isTransmission)) {
     columns.push({ key: 'joints', label: 'No. of Joints', width: 12 });
     columns.push({ key: 'jointType', label: 'Joint Type', width: 16 });
     columns.push({ key: 'bendQty', label: 'Bend', width: 8 });
@@ -111,11 +125,12 @@ function getColumnDefinitions() {
     columns.push({ key: 'uclampQty', label: 'U-Clamp Fixing', width: 12 });
     columns.push({ key: 'dptJoints', label: 'DPT Joints', width: 12 });
     columns.push({ key: 'utJoints', label: 'UT Joints', width: 12 });
-    columns.push({ key: 'fittingsInstalled', label: 'Fittings Installed', width: 14 });
+    // Fittings Installed — Distribution Main only
+    if (isDistribution) columns.push({ key: 'fittingsInstalled', label: 'Fittings Installed', width: 14 });
   }
 
-  // Excavation (Pipe Laying only)
-  if (allMods || mod === 'Pipe Laying') {
+  // Excavation (Pipe Laying only — not tied to a specific laying work)
+  if (inPipeLaying) {
     columns.push({ key: 'excavLength', label: 'Excavation Length (m)', width: 16 });
     columns.push({ key: 'excavWidth', label: 'Excavation Width (m)', width: 16 });
     columns.push({ key: 'excavDepth', label: 'Excavation Depth (m)', width: 16 });
@@ -140,9 +155,9 @@ function getColumnDefinitions() {
     columns.push({ key: 'testResult', label: 'Test Result', width: 16 });
   }
 
-  // Fittings fields (Pipe Laying only)
+  // Fittings & Meters (Ferrule / Ball Valve / Meter Box / Water Meter) — HSC only
   const hasFittings = fieldDefs.find(f => f.fieldId === 'ferrule');
-  if (hasFittings && hasFittings.visible !== false && (allMods || mod === 'Pipe Laying')) {
+  if (hasFittings && hasFittings.visible !== false && inPipeLaying && isHSC) {
     columns.push({ key: 'ferrule', label: 'Ferrule', width: 10 });
     columns.push({ key: 'ballValve', label: 'Ball Valve', width: 11 });
     columns.push({ key: 'meterBox', label: 'Meter Box', width: 11 });
@@ -197,7 +212,7 @@ function getColumnDefinitions() {
     joints: 'joints', jointType: 'jointType', bendQty: 'bendQty', teeQty: 'teeQty', uclampQty: 'uclampQty',
     dptJoints: 'dptJoints', utJoints: 'utJoints', fittingsInstalled: 'fittingsInstalled',
     excavLength: 'excavLength', excavWidth: 'excavWidth', excavDepth: 'excavDepth', excavVolume: 'excavVolume',
-    restoredLength: 'restoredLength', restoredWidth: 'restoredWidth',
+    restoredLength: 'restoredLength', restoredWidth: 'restoredWidth', surfaceType: 'surfaceType', restoredArea: 'restoredArea',
     ferrule: 'ferrule', ballValve: 'ballValve', meterBox: 'meterBox', waterMeter: 'waterMeter',
     noOfTeam: 'noOfTeam', welder: 'welder', fitter: 'fitter', unskilledLabour: 'unskilledLabour',
     manpower: 'manpower', workTime: 'workTime',
