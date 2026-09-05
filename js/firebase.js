@@ -28,7 +28,8 @@ import {
   orderBy,
   limit,
   serverTimestamp,
-  onSnapshot
+  onSnapshot,
+  deleteField
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 /* =============================================
@@ -365,5 +366,6 @@ export {
   DataService,
   MASTER_DATA,
   PIPE_DIAMETERS,
-  CONTRACTORS
+  CONTRACTORS,
+  deleteField
 };

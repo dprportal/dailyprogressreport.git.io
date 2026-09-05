@@ -7,67 +7,67 @@
    DESIGN TOKENS & CSS VARIABLES
    ============================================= */
 :root {
-  /* Shimla Water Primary Palette */
-  --teal-50: #E3F1EE;
-  --teal-100: #B8DDD6;
-  --teal-200: #8DC9BE;
-  --teal-300: #62B5A6;
-  --teal-400: #3AA18E;
-  --teal-500: #0E6B66;
-  --teal-600: #0A5A55;
-  --teal-700: #0A4F4B;
-  --teal-800: #053937;
-  --teal-900: #032928;
+  /* Brand Primary Palette — Neon Red on Black */
+  --teal-50: #FDE9EA;
+  --teal-100: #F8C6C9;
+  --teal-200: #F0959B;
+  --teal-300: #E65C66;
+  --teal-400: #FF2E42;
+  --teal-500: #E31E2E;
+  --teal-600: #B8141F;
+  --teal-700: #8C0F18;
+  --teal-800: #5E0A10;
+  --teal-900: #33050A;
 
-  /* Sky Accent */
-  --sky-400: #2E7DA6;
-  --sky-500: #256E94;
-  --sky-600: #1C5F82;
+  /* Neon Accent (electric crimson / magenta-red) */
+  --sky-400: #FF3B5C;
+  --sky-500: #E0143D;
+  --sky-600: #A80F2E;
 
   /* Semantic Colors */
-  --danger-400: #E07A65;
-  --danger-500: #B5482F;
-  --danger-600: #8F3A26;
-  --warning-400: #E0A05A;
-  --warning-500: #C97A1F;
-  --success-400: #5CAF6B;
-  --success-500: #427A4C;
-  --info-400: #5A9BBF;
-  --info-500: #2E7DA6;
+  --danger-400: #FF5C6C;
+  --danger-500: #E31E2E;
+  --danger-600: #A8141F;
+  --warning-400: #FFB238;
+  --warning-500: #E08F0F;
+  --success-400: #38E07A;
+  --success-500: #17A855;
+  --info-400: #4DD2E8;
+  --info-500: #1FA8C4;
 
-  /* Dark Theme (Login) */
-  --bg-primary: #081413;
-  --bg-secondary: #0C1E1C;
-  --bg-tertiary: #0F2926;
-  --bg-elevated: #153632;
-  --surface-primary: rgba(255,255,255,0.04);
-  --surface-secondary: rgba(255,255,255,0.07);
-  --surface-tertiary: rgba(255,255,255,0.1);
-  --border-primary: rgba(255,255,255,0.08);
-  --border-secondary: rgba(255,255,255,0.14);
-  --text-primary: #E8F0EE;
-  --text-secondary: #8AA09D;
-  --text-tertiary: #5B6C6B;
-  --text-muted: #3D4A49;
+  /* Dark Theme (Login / app chrome) — true black */
+  --bg-primary: #060607;
+  --bg-secondary: #0A0A0C;
+  --bg-tertiary: #101013;
+  --bg-elevated: #17171B;
+  --surface-primary: rgba(255,255,255,0.045);
+  --surface-secondary: rgba(255,255,255,0.075);
+  --surface-tertiary: rgba(255,255,255,0.11);
+  --border-primary: rgba(255,45,66,0.16);
+  --border-secondary: rgba(255,45,66,0.28);
+  --text-primary: #F5F2F2;
+  --text-secondary: #A9A3A4;
+  --text-tertiary: #706A6B;
+  --text-muted: #4A4546;
 
-  /* App Theme (Light - Shimla Water branded) */
-  --app-bg: #EEF3F1;
+  /* App Theme (Light mode — off-white with red accent) */
+  --app-bg: #F4F1F1;
   --app-surface: #FFFFFF;
-  --app-ink: #142625;
-  --app-muted: #5B6C6B;
-  --app-muted-2: #8AA09D;
-  --app-line: #DCE6E2;
-  --app-teal: #0E6B66;
-  --app-teal-dark: #0A4F4B;
-  --app-teal-light: #E3F1EE;
-  --app-sky: #2E7DA6;
-  --app-sky-light: #E6EFF5;
-  --app-slate: #5C6770;
-  --app-slate-light: #EAEDEF;
+  --app-ink: #191113;
+  --app-muted: #665D5E;
+  --app-muted-2: #948B8C;
+  --app-line: #E8DEE0;
+  --app-teal: #E31E2E;
+  --app-teal-dark: #A8141F;
+  --app-teal-light: #FDE9EA;
+  --app-sky: #C4102E;
+  --app-sky-light: #FBE7EA;
+  --app-slate: #5C525A;
+  --app-slate-light: #EDE7E8;
   --app-amber: #C97A1F;
   --app-amber-light: #FBEFDE;
-  --app-moss: #427A4C;
-  --app-moss-light: #E7F1E8;
+  --app-moss: #17915A;
+  --app-moss-light: #E4F5EC;
   --app-rose: #B5482F;
   --app-rose-light: #FBEAE5;
 
@@ -97,8 +97,8 @@
   --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
   --shadow-xl: 0 16px 48px rgba(0,0,0,0.6);
-  --glow-teal: 0 0 20px rgba(14,107,102,0.25);
-  --app-shadow: 0 1px 2px rgba(15,35,33,0.06), 0 6px 16px -8px rgba(15,35,33,0.10);
+  --glow-teal: 0 0 20px rgba(227,30,46,0.35);
+  --app-shadow: 0 1px 2px rgba(15,10,11,0.06), 0 6px 16px -8px rgba(15,10,11,0.14);
 
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -249,15 +249,15 @@ button { cursor: pointer; }
   transition: all var(--transition-fast);
 }
 .connection-badge.online {
-  background: rgba(66,122,76,0.2);
+  background: rgba(23,168,85,0.2);
   color: var(--success-400);
 }
 .connection-badge.offline {
-  background: rgba(181,72,47,0.2);
+  background: rgba(227,30,46,0.2);
   color: var(--danger-400);
 }
 .connection-badge.reconnecting {
-  background: rgba(201,122,31,0.2);
+  background: rgba(224,143,15,0.2);
   color: var(--warning-400);
   animation: pulse-scale 1.2s ease-in-out infinite;
 }
@@ -279,8 +279,8 @@ button { cursor: pointer; }
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 30%, rgba(14,107,102,0.2) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(46,125,166,0.08) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 20% 30%, rgba(227,30,46,0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(255,59,92,0.10) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -288,8 +288,8 @@ button { cursor: pointer; }
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(14,107,102,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(14,107,102,0.03) 1px, transparent 1px);
+    linear-gradient(rgba(227,30,46,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(227,30,46,0.05) 1px, transparent 1px);
   background-size: 50px 50px;
   pointer-events: none;
 }
@@ -384,7 +384,7 @@ button { cursor: pointer; }
 .form-input:focus {
   border-color: var(--teal-500);
   background: var(--surface-secondary);
-  box-shadow: 0 0 0 3px rgba(14,107,102,0.15);
+  box-shadow: 0 0 0 3px rgba(227,30,46,0.18);
 }
 
 .input-icon {
@@ -438,7 +438,7 @@ button { cursor: pointer; }
 }
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(14,107,102,0.4);
+  box-shadow: 0 6px 20px rgba(227,30,46,0.4);
 }
 
 .btn-outline {
@@ -463,12 +463,12 @@ button { cursor: pointer; }
 }
 
 .btn-info {
-  background: rgba(46,125,166,0.15);
-  border-color: rgba(46,125,166,0.3);
+  background: rgba(196,16,46,0.15);
+  border-color: rgba(196,16,46,0.3);
   color: var(--info-400);
 }
 .btn-info:hover:not(:disabled) {
-  background: rgba(46,125,166,0.25);
+  background: rgba(196,16,46,0.25);
   border-color: var(--info-500);
 }
 
@@ -577,7 +577,7 @@ button { cursor: pointer; }
 .eng-select-search input:focus {
   border-color: var(--teal-500);
   background: var(--surface-secondary);
-  box-shadow: 0 0 0 3px rgba(14,107,102,0.1);
+  box-shadow: 0 0 0 3px rgba(227,30,46,0.1);
   outline: none;
 }
 .eng-select-search i {
@@ -741,7 +741,7 @@ button { cursor: pointer; }
 .password-input-wrapper input:focus {
   border-color: var(--teal-500);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(14,107,102,0.1);
+  box-shadow: 0 0 0 3px rgba(227,30,46,0.1);
 }
 
 .form-hint {
@@ -961,11 +961,11 @@ nav.tabs button:hover { color: var(--app-teal-dark); }
 .sw-btn-danger { background: transparent; border-color: var(--app-rose-light); color: var(--app-rose); }
 .sw-btn-danger:hover { background: var(--app-rose-light); }
 .sw-btn-info {
-  background: rgba(46,125,166,0.1);
-  border-color: rgba(46,125,166,0.3);
+  background: rgba(196,16,46,0.1);
+  border-color: rgba(196,16,46,0.3);
   color: var(--app-sky);
 }
-.sw-btn-info:hover { background: rgba(46,125,166,0.2); }
+.sw-btn-info:hover { background: rgba(196,16,46,0.2); }
 .sw-btn-block { width: 100%; }
 .sw-btn-sm { padding: 7px 11px; font-size: 12.5px; border-radius: 7px; }
 
@@ -1069,7 +1069,7 @@ nav.tabs button:hover { color: var(--app-teal-dark); }
   justify-content: flex-end;
   padding: 14px 20px;
   border-top: 1px solid var(--app-line);
-  background: #FAFCFB;
+  background: var(--app-slate-light);
 }
 
 /* =============================================
@@ -1109,7 +1109,7 @@ table.log th {
   white-space: nowrap;
 }
 table.log td { padding: 9px 8px; border-bottom: 1px solid var(--app-line); vertical-align: middle; color: var(--app-ink); }
-table.log tbody tr:hover { background: #FAFCFB; }
+table.log tbody tr:hover { background: var(--app-slate-light); }
 
 .log-wrap { overflow-x: auto; border: 1px solid var(--app-line); border-radius: 12px; background: var(--app-surface); }
 
@@ -1339,26 +1339,39 @@ table.log tbody tr:hover { background: #FAFCFB; }
    Keeps the header small, simple & professional on phones
    ============================================================ */
 @media (max-width: 768px) {
-  .topbar { padding: 12px 14px; padding-top: calc(12px + env(safe-area-inset-top)); }
-  .topbar-inner { align-items: center; gap: 10px; }
-  .topbar-left { gap: 10px; flex: 1 1 auto; min-width: 0; }
-  .topbar-logo { width: 36px; height: 36px; border-radius: 9px; }
-  .topbar-brand { min-width: 0; }
-  .topbar-brand .eyebrow { font-size: 9px; letter-spacing: .05em; margin: 0 0 2px; line-height: 1.3; }
-  .topbar-brand h1 { font-size: 15px; line-height: 1.2; }
+  .topbar { padding: 10px 12px; padding-top: calc(10px + env(safe-area-inset-top)); }
+  .topbar-inner { align-items: center; gap: 8px; }
+  .topbar-left { gap: 8px; flex: 1 1 auto; min-width: 0; }
+  .topbar-logo { width: 34px; height: 34px; border-radius: 9px; }
+  .suez-logo-3d { display: none; }    /* redundant with the hamburger + drawer branding on phones */
+  .topbar-brand { min-width: 0; overflow: hidden; }
+  .topbar-brand .eyebrow {
+    font-size: 8.5px; letter-spacing: .04em; margin: 0 0 1px; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .topbar-brand h1 {
+    font-size: 14px; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
   .topbar-brand .sub { display: none; }              /* hide long descriptive subtitle on phones */
 
-  .topbar-user { flex: 0 0 auto; max-width: 42%; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
-  .topbar-user .who { margin: 0; font-size: 11px; line-height: 1.3; }
+  .topbar-user { flex: 0 0 auto; max-width: 40%; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; text-align: right; }
+  .topbar-user .who {
+    margin: 0; font-size: 10.5px; line-height: 1.3; max-width: 100%;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
   .role-tag { font-size: 9px; padding: 1px 5px; margin-left: 5px; }
-  .topbar-actions { gap: 6px; }
-  .topbar-actions .sw-btn-sm { padding: 8px 9px; }
+  .topbar-actions { gap: 5px; }
+  .topbar-actions .sw-btn-sm,
+  .theme-toggle-btn { width: 32px; height: 32px; padding: 0; }
   #logoutBtn .btn-label { display: none; }            /* icon-only logout on phones */
 }
 
 @media (max-width: 420px) {
-  .topbar-brand h1 { font-size: 14px; }
-  .topbar-user { max-width: 40%; }
+  .topbar-brand h1 { font-size: 13px; }
+  .topbar-user { max-width: 34%; }
+  .topbar-logo { display: none; }    /* hamburger alone carries the mark at very small widths */
+  .role-tag { display: none; }       /* keep just the name, drop the pill badge to save space */
 }
 
 /* ============================================================
@@ -1501,8 +1514,8 @@ nav.tabs { display: none !important; }   /* replaced by the drawer */
 .drawer-item.active { background: var(--app-teal); color: #fff; }
 .drawer-item.active i { color: #fff; }
 .drawer-spacer { flex: 1; min-height: 8px; }
-.drawer-logout { color: #c0392b; }
-.drawer-logout i { color: #c0392b; }
+.drawer-logout { color: var(--danger-500); }
+.drawer-logout i { color: var(--danger-500); }
 .drawer-logout:hover { background: rgba(192,57,43,.10); }
 
 /* Module banner on the entry form */
@@ -1536,60 +1549,62 @@ nav.tabs { display: none !important; }   /* replaced by the drawer */
 .mod-chip.active i { color: #fff; }
 
 /* ============================================================
-   OCEAN WATER THEME (appended)
-   Retunes the existing tokens to a premium ocean-blue / cyan
+   BLACK / RED / NEON THEME (appended)
+   Retunes the existing tokens to a premium black + neon-red
    palette (dark stays dark, light stays light — contrast safe)
-   and adds a subtle animated water wave under the header.
+   and adds a subtle animated neon underline under the header.
    ============================================================ */
 :root {
-  /* Dark login surfaces -> deep ocean navy */
-  --bg-primary: #06141F;
-  --bg-secondary: #0A1E2E;
-  --bg-tertiary: #0E2A3D;
-  --bg-elevated: #143447;
-  --text-primary: #E8F1F8;
-  --text-secondary: #8AA3B5;
+  /* Dark login/chrome surfaces -> true black */
+  --bg-primary: #08080A;
+  --bg-secondary: #0D0D10;
+  --bg-tertiary: #131316;
+  --bg-elevated: #1B1B1F;
+  --text-primary: #F5F1F1;
+  --text-secondary: #A79FA0;
 
   /* Light app surfaces */
-  --app-bg: #EDF4F8;
-  --app-ink: #12222E;
-  --app-line: #D5E3ED;
-  --app-muted: #5A6B78;
+  --app-bg: #F4F1F1;
+  --app-ink: #191113;
+  --app-line: #E8DEE0;
+  --app-muted: #665D5E;
 
-  /* Brand -> ocean blue + cyan accents */
-  --app-teal: #0C6B9A;
-  --app-teal-dark: #084C73;
-  --app-teal-light: #E2F1FA;
-  --app-sky: #1782A8;
-  --app-sky-light: #E0F2FA;
+  /* Brand -> neon red + crimson accents */
+  --app-teal: #E31E2E;
+  --app-teal-dark: #A8141F;
+  --app-teal-light: #FDE9EA;
+  --app-sky: #C4102E;
+  --app-sky-light: #FBE7EA;
 }
 
-/* Animated water wave under the header */
+/* Animated neon underline under the header */
 .topbar { position: sticky; top: 0; overflow: hidden; }
 .topbar::after {
   content: "";
-  position: absolute; left: 0; right: 0; bottom: -1px; height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='16'%20viewBox='0%200%20240%2016'%3E%3Cpath%20d='M0,8C30,0,60,0,90,8S150,16,180,8S240,0,240,8V16H0Z'%20fill='%23EDF4F8'/%3E%3C/svg%3E");
+  position: absolute; left: 0; right: 0; bottom: -1px; height: 3px;
+  background-image: linear-gradient(90deg, transparent, #FF2E42 20%, #FF6B7A 50%, #FF2E42 80%, transparent);
   background-repeat: repeat-x;
-  background-size: 240px 16px;
-  animation: dprWave 9s linear infinite;
+  background-size: 240px 3px;
+  box-shadow: 0 0 10px rgba(255,46,66,.55);
+  animation: dprWave 6s linear infinite;
   pointer-events: none;
 }
 @keyframes dprWave { from { background-position-x: 0; } to { background-position-x: -240px; } }
 
-/* Gradient primary buttons + soft depth */
+/* Gradient primary buttons + neon glow depth */
 .sw-btn-primary {
   background: linear-gradient(135deg, var(--app-sky), var(--app-teal) 72%);
   border: none;
-  box-shadow: 0 4px 14px rgba(12,107,154,.26);
+  box-shadow: 0 4px 14px rgba(227,30,46,.32);
 }
 .sw-btn-primary:hover {
   background: linear-gradient(135deg, var(--app-sky), var(--app-teal-dark) 82%);
-  box-shadow: 0 6px 18px rgba(12,107,154,.32);
+  box-shadow: 0 0 16px rgba(255,46,66,.5), 0 6px 18px rgba(227,30,46,.4);
 }
 
 /* Slightly softer, more premium cards */
-.sw-card { box-shadow: 0 2px 18px rgba(8,40,60,.06); }
+.sw-card { box-shadow: 0 2px 18px rgba(0,0,0,.5); }
+html:not([data-theme="dark"]) .sw-card { box-shadow: 0 2px 18px rgba(25,17,19,.08); }
 
 /* ============================================================
    FASTER / SMOOTHER DRAWER (appended override)
@@ -1616,25 +1631,25 @@ nav.tabs { display: none !important; }   /* replaced by the drawer */
    Toggled by js/theme.js; persisted in localStorage as "dpr-theme".
    ============================================================ */
 html[data-theme="dark"] {
-  --app-bg: #0B1613;
-  --app-surface: #12211D;
-  --app-ink: #E9F3F0;
-  --app-muted: #9FB6B1;
-  --app-muted-2: #74928C;
-  --app-line: #23372F;
-  --app-shadow: 0 2px 18px rgba(0,0,0,.35);
+  --app-bg: #0A0A0B;
+  --app-surface: #131314;
+  --app-ink: #F3EFEF;
+  --app-muted: #A79FA0;
+  --app-muted-2: #797071;
+  --app-line: #242024;
+  --app-shadow: 0 2px 18px rgba(0,0,0,.55);
 
-  --app-teal-light: #123A34;
-  --app-sky: #6BB0DA;
-  --app-sky-light: #142A38;
-  --app-slate: #B7C2C6;
-  --app-slate-light: #1E2629;
+  --app-teal-light: #2A0E13;
+  --app-sky: #FF5C74;
+  --app-sky-light: #24121A;
+  --app-slate: #C7BFC0;
+  --app-slate-light: #1E1B1D;
   --app-amber: #E6B372;
   --app-amber-light: #3A2A12;
-  --app-moss: #8ACB97;
-  --app-moss-light: #1B3320;
-  --app-rose: #E8977E;
-  --app-rose-light: #3A1D16;
+  --app-moss: #6DE39C;
+  --app-moss-light: #10301F;
+  --app-rose: #FF8B7E;
+  --app-rose-light: #3A1612;
 }
 
 /* A couple of spots still had a hardcoded light-mode assumption baked

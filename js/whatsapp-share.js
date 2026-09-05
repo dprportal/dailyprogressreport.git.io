@@ -98,23 +98,30 @@ function customFieldsBlock(r) {
    automatically -- no need for manual conditionals.
    ============================================= */
 const DEFAULT_TEMPLATE = `*DAILY PROGRESS REPORT*
-Shimla 24x7 Water Supply Project
+*Shimla 24x7 Water Supply Project*
+――――――――――――――――――
 
-Date: {{date}}
-S.No: {{sno}}
-Engineer: {{engineer}}
+*Date:* {{date}}
+*S.No:* {{sno}}
+*Engineer:* {{engineer}}
 
-Work Type: {{workType}}
-Activity: {{layingWork}}
+*Work Type:* {{workType}}
+*Activity:* {{layingWork}}
 
-Package: {{package}}
-Zone: {{zone}}
-DMA: {{dma}}
-Stretch: {{stretch}}
+*Package:* {{package}}
+*Zone:* {{zone}}
+*DMA:* {{dma}}
+*Stretch:* {{stretch}}
 
+{{#pipe}}
+*PIPE SPECIFICATION*
 Pipe Dia: {{pipeDia}}
 Laying Length: {{layingLength}}
 Pipe Material: {{pipeMaterial}}
+{{/pipe}}
+
+{{#joints}}
+*JOINTS, WELDING & TESTING*
 Joints: {{joints}}
 Joint Type: {{jointType}}
 Bend: {{bendQty}}
@@ -123,25 +130,42 @@ U-Clamp Fixing: {{uclampQty}}
 DPT Joints: {{dptJoints}}
 UT Joints: {{utJoints}}
 Fittings Installed: {{fittingsInstalled}}
+{{/joints}}
+
+{{#restoration}}
+*ROAD RESTORATION*
 Restored Length: {{restoredLength}}
 Restored Width: {{restoredWidth}}
 Restored Area: {{restoredArea}}
 Surface Type: {{surfaceType}}
+{{/restoration}}
+
+{{#hydro}}
+*HYDRO TEST*
 Tested Length: {{testedLength}}
 Test Pressure: {{testPressure}}
 Start Time: {{startTime}}
 End Time: {{endTime}}
 Test Result: {{testResult}}
+{{/hydro}}
+
+{{#fittings}}
+*FITTINGS & METERS*
 Ferrule: {{ferrule}}
 Ball Valve: {{ballValve}}
 Meter Box: {{meterBox}}
 Water Meter: {{waterMeter}}
+{{/fittings}}
 
+{{#excavation}}
+*EXCAVATION*
 Excavation Length: {{excavLength}}
 Excavation Width: {{excavWidth}}
 Excavation Depth: {{excavDepth}}
 Excavation Volume: {{excavVolume}}
+{{/excavation}}
 
+*MANPOWER*
 Teams: {{noOfTeam}}
 Welder: {{welder}}
 Fitter: {{fitter}}
@@ -151,8 +175,10 @@ Work Time: {{workTime}}
 
 {{customFields}}
 
-Contractor: {{contractor}}
-Remarks: {{remark}}`;
+*Contractor:* {{contractor}}
+*Remarks:* {{remark}}
+――――――――――――――――――
+_Generated via DPR System_`;
 
 /* =============================================
    TEMPLATE ENGINE
@@ -179,10 +205,22 @@ export function renderTemplate(template, r) {
   // 1) Expand block tokens first (can be multi-line or empty)
   let text = String(template || '').replace(/\{\{\s*customFields\s*\}\}/g, () => customFieldsBlock(r));
 
+  // 1b) Named conditional sections: {{#name}}...{{/name}} is dropped in its
+  // entirety (heading text included) when every {{token}} inside it is
+  // empty for this record — so a report never shows an empty "PIPE
+  // SPECIFICATION" header with nothing underneath it, e.g. on a Road
+  // Restoration entry that has no pipe fields at all.
+  const tokenRe = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+  const blockRe = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
+  text = text.replace(blockRe, (_, name, inner) => {
+    const idsInBlock = [...inner.matchAll(tokenRe)].map(m => m[1]);
+    const hasValue = idsInBlock.some(id => resolveToken(id, r));
+    return hasValue ? inner : '';
+  });
+
   // 2) Line-by-line token substitution with auto-drop for empty lines
   const lines = text.split('\n');
   const kept = [];
-  const tokenRe = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
 
   for (const line of lines) {
     const tokensInLine = [...line.matchAll(tokenRe)].map(m => m[1]);

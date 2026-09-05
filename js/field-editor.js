@@ -3,7 +3,7 @@
    Admin Field Management | Drag & Drop | Dynamic Form Generation
    ============================================= */
 
-import { DataService, COLLECTIONS } from './firebase.js?v=22';
+import { DataService, COLLECTIONS, deleteField as firestoreDeleteField } from './firebase.js?v=22';
 import { State } from './auth.js?v=22';
 import { AppUtils } from './app.js?v=22';
 import { loadWhatsappTemplate, saveWhatsappTemplate, getDefaultTemplate, getAvailableTokens, renderTemplate } from './whatsapp-share.js?v=22';
@@ -66,7 +66,7 @@ const DEFAULT_FIELD_DEFS = [
 // specific fields (and only those) once, without touching anything an admin
 // has customised elsewhere. This fixes "field X is stuck required" bugs
 // caused by earlier defaults having been saved to Firestore already.
-const SCHEMA_MIGRATION_VERSION = 2;
+const SCHEMA_MIGRATION_VERSION = 3;
 const MIGRATION_DOC_ID = 'fieldSchemaMigration';
 // fieldIds whose required/section/order/label must match DEFAULT_FIELD_DEFS
 // exactly as of this migration (added new Transmission/Distribution fields +
@@ -75,6 +75,14 @@ const MIGRATION_PATCH_FIELDS = [
   'joints', 'excavLength', 'excavWidth', 'excavDepth',
   'welder', 'fitter', 'unskilledLabour', 'layingLength'
 ];
+// v3 fix: on some older databases "layingLength" was saved with a leftover
+// workType/layingWork restriction from an earlier default (e.g. tied to a
+// single Laying Work). That silently hid the "Laying Length" field whenever
+// an existing DPR of a different Work/Laying type was opened for edit, even
+// though the built-in card logic already shows it correctly. This clears
+// any stale condition on the affected fields so they match today's
+// defaults exactly (visible whenever their card is visible).
+const MIGRATION_CLEAR_CONDITION_FIELDS = ['layingLength'];
 
 async function runSchemaMigration() {
   try {
@@ -89,14 +97,28 @@ async function runSchemaMigration() {
       if (!def || !existing) continue;
 
       const patch = {};
+      const clearedLocally = [];
       if (existing.required !== def.required) patch.required = def.required;
       if (existing.section !== def.section) patch.section = def.section;
       if (existing.order !== def.order) patch.order = def.order;
       if (existing.label !== def.label) patch.label = def.label;
+
+      // Clear any stale Work Type / Laying Work restriction that today's
+      // default no longer carries (see MIGRATION_CLEAR_CONDITION_FIELDS above).
+      if (MIGRATION_CLEAR_CONDITION_FIELDS.includes(fieldId)) {
+        if (!def.workType && existing.workType) { patch.workType = firestoreDeleteField(); clearedLocally.push('workType'); }
+        if (!def.layingWork && existing.layingWork) { patch.layingWork = firestoreDeleteField(); clearedLocally.push('layingWork'); }
+      }
       if (Object.keys(patch).length === 0) continue;
 
       await DataService.update(COLLECTIONS.FIELD_DEFS, existing.id, patch);
-      Object.assign(existing, patch);
+      // Apply the same patch to local state — a Firestore deleteField()
+      // sentinel isn't a real value locally, so those keys are simply
+      // unset instead of being assigned the sentinel object.
+      Object.keys(patch).forEach(k => {
+        if (clearedLocally.includes(k)) delete existing[k];
+        else existing[k] = patch[k];
+      });
       patched++;
     }
 
