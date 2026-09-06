@@ -5,7 +5,7 @@
 
 import { State } from './auth.js?v=22';
 import { AppUtils } from './app.js?v=22';
-import { packageScope, zoneScope, listPackages, listZones } from './scope.js?v=22';
+import { getScope } from './scope.js?v=22';
 
 /* =============================================
    CHART INSTANCES
@@ -355,94 +355,69 @@ function renderPipeLayingSummary() {
 }
 
 /* =============================================
-   PROGRESS BY PACKAGE & ZONE (Scope Management)
-   Combines admin-entered scope lengths (Settings -> Scope) with
-   actual completed lengths from Pipe Laying DPRs to show, per
-   Package and per Zone: Total Scope, Completed, Pending and
-   Progress % for Distribution Main & Transmission Main, plus
-   completed length for HSC (no scope field requested for HSC).
+   PACKAGE & ZONE PROGRESS (Distribution / Transmission / HSC
+   done vs the scope set in Admin -> Settings -> Package & Zone Scope)
    ============================================= */
-let scopeProgressTab = 'package';
+function renderPackageZoneProgress() {
+  const container = document.getElementById('dashPackageZoneProgress');
+  if (!container) return;
 
-function completedFor(recs, key, val, layingWork) {
-  return recs
-    .filter(r => String(r[key]) === String(val) && r.layingWork === layingWork)
-    .reduce((s, r) => s + (parseFloat(r.layingLength) || 0), 0);
-}
+  const recs = (State.dprs || []).filter(r => r.workType === 'Pipe Laying' && r.packageNo && r.zoneNo);
 
-function scopeRowHtml(label, scope, completedDist, completedTrans, completedHsc) {
-  const fmt = v => Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
-  const pct = (done, total) => total > 0 ? Math.min(100, (done / total) * 100) : 0;
+  // Group by package -> zone
+  const groups = {}; // packageNo -> { zoneNo -> { zoneName, dist, trans, hsc } }
+  recs.forEach(r => {
+    const p = r.packageNo, z = r.zoneNo;
+    groups[p] = groups[p] || {};
+    const g = (groups[p][z] = groups[p][z] || { zoneName: r.zoneName || `Zone ${z}`, dist: 0, trans: 0, hsc: 0 });
+    if (r.layingWork === 'Distribution Main') g.dist += parseFloat(r.layingLength) || 0;
+    else if (r.layingWork === 'Transmission Main') g.trans += parseFloat(r.layingLength) || 0;
+    else if (r.layingWork === 'House Service Connection') g.hsc += parseFloat(r.waterMeter) || 0;
+  });
 
-  const seg = (done, total) => {
-    const total2 = Number(total) || 0;
-    const pending = Math.max(0, total2 - done);
-    const p = pct(done, total2);
-    return `
-      <td class="sp-cell">
-        <div class="sp-line"><span>${fmt(done)} / ${fmt(total2)} m</span><span class="sp-pct">${p.toFixed(0)}%</span></div>
-        <div class="bar-track sp-track"><div class="bar-fill" style="width:${p}%; background: var(--app-teal);"></div></div>
-        <div class="sp-pending">Pending: ${fmt(pending)} m</div>
-      </td>`;
-  };
-
-  return `
-    <tr>
-      <td class="sp-label">${AppUtils.esc(label)}</td>
-      ${seg(completedDist, scope.distributionScope)}
-      ${seg(completedTrans, scope.transmissionScope)}
-      <td class="sp-cell"><div class="sp-line"><span>${fmt(completedHsc)} m</span></div></td>
-    </tr>`;
-}
-
-function renderScopeProgress() {
-  const wrap = document.getElementById('scopeProgressTable');
-  if (!wrap) return;
-  const recs = (State.dprs || []).filter(r => r.workType === 'Pipe Laying');
-
-  const header = `
-    <table class="sp-table">
-      <thead><tr>
-        <th>${scopeProgressTab === 'package' ? 'Package' : 'Zone'}</th>
-        <th>Distribution Main</th>
-        <th>Transmission Main</th>
-        <th>HSC (Completed)</th>
-      </tr></thead>
-      <tbody>`;
-
-  let rows;
-  if (scopeProgressTab === 'package') {
-    rows = listPackages().map(p => {
-      const scope = packageScope(p);
-      const dist = completedFor(recs, 'packageNo', p, 'Distribution Main');
-      const trans = completedFor(recs, 'packageNo', p, 'Transmission Main');
-      const hsc = completedFor(recs, 'packageNo', p, 'House Service Connection');
-      return scopeRowHtml('Package ' + p, scope, dist, trans, hsc);
-    }).join('');
-  } else {
-    rows = listZones().map(z => {
-      const scope = zoneScope(z.zn);
-      const dist = completedFor(recs, 'zoneNo', z.zn, 'Distribution Main');
-      const trans = completedFor(recs, 'zoneNo', z.zn, 'Transmission Main');
-      const hsc = completedFor(recs, 'zoneNo', z.zn, 'House Service Connection');
-      return scopeRowHtml(`${z.z} (Pkg ${z.p})`, scope, dist, trans, hsc);
-    }).join('');
+  const packages = Object.keys(groups).sort((a, b) => a - b);
+  if (packages.length === 0) {
+    container.innerHTML = '<p class="hint">No Pipe Laying entries with Package/Zone yet.</p>';
+    return;
   }
 
-  wrap.innerHTML = header + rows + '</tbody></table>';
-}
+  const bar = (label, done, scope, unit) => {
+    const hasScope = scope > 0;
+    const pct = hasScope ? Math.min(100, Math.round((done / scope) * 100)) : 0;
+    const pending = hasScope ? Math.max(0, scope - done) : 0;
+    const fmt = v => Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+    return `
+      <div class="pz-metric">
+        <div class="pz-metric-head">
+          <span class="pz-metric-label">${AppUtils.esc(label)}</span>
+          <span class="pz-metric-value">${fmt(done)}${hasScope ? ' / ' + fmt(scope) : ''} ${AppUtils.esc(unit)}</span>
+        </div>
+        <div class="pz-bar"><div class="pz-bar-fill" style="width:${hasScope ? pct : (done > 0 ? 100 : 0)}%"></div></div>
+        <div class="pz-metric-foot">${hasScope ? `${pct}% done &middot; ${fmt(pending)} ${AppUtils.esc(unit)} pending` : 'No scope set'}</div>
+      </div>`;
+  };
 
-function initScopeProgressTabs() {
-  const tabsEl = document.getElementById('scopeProgressTabs');
-  if (!tabsEl || tabsEl.dataset.bound) return;
-  tabsEl.dataset.bound = '1';
-  tabsEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-scopeprogtab]');
-    if (!btn) return;
-    scopeProgressTab = btn.dataset.scopeprogtab;
-    tabsEl.querySelectorAll('.dd-tab').forEach(b => b.classList.toggle('active', b === btn));
-    renderScopeProgress();
-  });
+  container.innerHTML = packages.map(p => {
+    const zones = groups[p];
+    const zoneKeys = Object.keys(zones).sort((a, b) => zones[a].zoneName.localeCompare(zones[b].zoneName));
+    const zoneCards = zoneKeys.map(z => {
+      const g = zones[z];
+      const scope = getScope(p, z);
+      return `
+        <div class="pz-zone-card">
+          <div class="pz-zone-title">${AppUtils.esc(g.zoneName)}</div>
+          ${bar('Distribution Main', g.dist, scope.distributionScope, 'm')}
+          ${bar('Transmission Main', g.trans, scope.transmissionScope, 'm')}
+          ${bar('House Service Connection', g.hsc, scope.hscScope, 'conn.')}
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="pz-package-block">
+        <div class="pz-package-title">Package ${AppUtils.esc(p)}</div>
+        <div class="pz-zone-grid">${zoneCards}</div>
+      </div>`;
+  }).join('');
 }
 
 /* =============================================
@@ -457,9 +432,8 @@ function render() {
   // Pipe laying progress cards (Distribution / Transmission / HSC, excavation, resources)
   renderPipeLayingSummary();
 
-  // Progress by Package & Zone vs admin-entered scope (Scope Management)
-  initScopeProgressTabs();
-  renderScopeProgress();
+  // Package + Zone progress, broken out by Distribution / Transmission / HSC vs scope
+  renderPackageZoneProgress();
 
   // Daily progress in metres (headline chart)
   renderDailyChart();
@@ -495,12 +469,6 @@ function init() {
     }
   });
 
-  window.addEventListener('scope:changed', () => {
-    if (State.currentPage === 'dash') {
-      renderScopeProgress();
-    }
-  });
-
   window.addEventListener('app:boot', () => {
     // Pre-render if dashboard is default
     if (State.currentPage === 'dash') {
@@ -513,6 +481,14 @@ function init() {
   window.addEventListener('theme:changed', () => {
     if (State.currentPage === 'dash') {
       render();
+    }
+  });
+
+  // Scope targets loaded (async, after app:boot) or edited in Settings —
+  // refresh the Package & Zone Progress bars so they reflect Done vs Pending.
+  window.addEventListener('scope:changed', () => {
+    if (State.currentPage === 'dash') {
+      renderPackageZoneProgress();
     }
   });
 }

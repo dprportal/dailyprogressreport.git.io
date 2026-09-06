@@ -118,13 +118,13 @@
 
 .field-def-item:hover {
   border-color: var(--app-teal);
-  box-shadow: 0 2px 8px rgba(227,30,46,0.1);
+  box-shadow: 0 2px 8px rgba(22,86,214,0.1);
 }
 
 .field-def-item.dragging {
   opacity: 0.7;
   transform: scale(1.02) rotate(1deg);
-  box-shadow: 0 8px 24px rgba(227,30,46,0.2);
+  box-shadow: 0 8px 24px rgba(22,86,214,0.2);
   cursor: grabbing;
   z-index: 10;
 }
@@ -287,7 +287,7 @@ html:not([data-theme="dark"]) .section-badge.section-custom { background: #F0E6F
   align-items: center;
   padding: 1px 6px;
   border-radius: 3px;
-  background: rgba(227,30,46,0.1);
+  background: rgba(22,86,214,0.1);
   color: var(--app-teal);
   font-size: 10px;
   font-weight: 600;
@@ -363,7 +363,7 @@ html:not([data-theme="dark"]) .section-badge.section-custom { background: #F0E6F
 
 /* Work-type filter badge in the field list (distinct from laying-work badge) */
 .laying-filter-badge.worktype-badge {
-  background: rgba(196,16,46,0.12);
+  background: rgba(13,127,179,0.12);
   color: var(--app-sky);
 }
 
@@ -398,13 +398,6 @@ html:not([data-theme="dark"]) .section-badge.section-custom { background: #F0E6F
 .dd-row .dd-suffix { font-size: 12px; font-weight: 500; color: var(--app-muted); margin-left: 4px; }
 .dd-row .dd-edit-input { flex: 1 1 auto; min-width: 0; margin-right: 10px; }
 .dd-row-actions { display: flex; gap: 6px; flex: 0 0 auto; }
-
-/* Scope Management rows */
-.scope-row { flex-wrap: wrap; align-items: center; gap: 10px 16px; }
-.scope-row .dd-val { flex: 1 1 220px; }
-.scope-inputs { display: flex; gap: 14px; flex-wrap: wrap; }
-.scope-input-lbl { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--app-muted); font-weight: 600; }
-.scope-input { width: 130px; }
 
 /* ============================================================
    FORMULA BUILDER (Calculated fields) — appended
@@ -445,3 +438,41 @@ html:not([data-theme="dark"]) .section-badge.section-custom { background: #F0E6F
 .formula-op-btn:hover { border-color: var(--app-teal); }
 .formula-side-btn { font-size: 12px; font-weight: 600; padding: 8px 12px; }
 .formula-error { color: var(--app-rose, #e11d48); font-weight: 600; }
+
+/* ============================================================
+   PACKAGE & ZONE SCOPE SETTINGS TABLE
+   ============================================================ */
+.scope-package-block { margin-bottom: 20px; }
+.scope-package-block:last-child { margin-bottom: 0; }
+.scope-package-title {
+  font-size: 13px; font-weight: 700; color: var(--app-ink);
+  margin-bottom: 8px;
+}
+.scope-table { width: 100%; border-collapse: collapse; }
+.scope-table th {
+  text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .03em; color: var(--app-muted); padding: 6px 8px;
+  border-bottom: 1px solid var(--app-line);
+}
+.scope-table td { padding: 6px 8px; border-bottom: 1px solid var(--app-line); }
+.scope-zone-name { font-size: 13px; font-weight: 600; color: var(--app-ink); white-space: nowrap; }
+.scope-input { max-width: 130px; }
+
+@media (max-width: 640px) {
+  .scope-table { display: block; overflow-x: auto; white-space: nowrap; }
+}
+
+/* ============================================================
+   MANAGE SECTIONS (custom DPR-form sections)
+   ============================================================ */
+.add-section-form { display: flex; gap: 10px; }
+.add-section-form .sw-input { flex: 1; }
+.field-list-empty-inline { font-size: 13px; color: var(--app-muted); padding: 8px 2px; }
+.section-def-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border: 1px solid var(--app-line); border-radius: 10px;
+  background: var(--app-surface, #fff); margin-bottom: 8px; cursor: grab;
+}
+.section-def-item.dragging { opacity: .6; }
+.section-def-item.drag-over { border-color: var(--app-teal); }
+.section-def-item .field-def-info { flex: 1; }

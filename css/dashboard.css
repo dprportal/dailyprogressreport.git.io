@@ -213,18 +213,46 @@ canvas {
 .dash-chart-wrap { position: relative; width: 100%; height: 260px; }
 .dash-chart-wrap canvas { width: 100% !important; height: 100% !important; }
 
-/* Progress by Package & Zone (Scope Management) */
-.scope-progress-wrap { overflow-x: auto; }
-.sp-table { width: 100%; border-collapse: collapse; min-width: 640px; }
-.sp-table th {
-  text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em;
-  color: var(--app-muted); padding: 8px 10px; border-bottom: 2px solid var(--app-line);
+/* ============================================================
+   PACKAGE & ZONE PROGRESS (Distribution / Transmission / HSC)
+   ============================================================ */
+.pz-package-block { margin-bottom: 22px; }
+.pz-package-block:last-child { margin-bottom: 0; }
+.pz-package-title {
+  font-size: 14px; font-weight: 700; color: var(--app-ink);
+  margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--app-line);
 }
-.sp-table td { padding: 10px; border-bottom: 1px solid var(--app-line); vertical-align: top; }
-.sp-table tr:hover td { background: var(--app-teal-light); }
-.sp-label { font-weight: 700; color: var(--app-ink); white-space: nowrap; }
-.sp-cell { min-width: 180px; }
-.sp-line { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: var(--app-ink); margin-bottom: 4px; }
-.sp-pct { color: var(--app-teal); }
-.sp-track { height: 6px; margin-bottom: 4px; }
-.sp-pending { font-size: 11px; color: var(--app-muted-2); }
+.pz-zone-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.pz-zone-card {
+  background: var(--app-slate-light);
+  border: 1px solid var(--app-line);
+  border-radius: 12px;
+  padding: 14px;
+}
+.pz-zone-title { font-size: 13px; font-weight: 700; color: var(--app-ink); margin-bottom: 10px; }
+.pz-metric { margin-bottom: 12px; }
+.pz-metric:last-child { margin-bottom: 0; }
+.pz-metric-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px; margin-bottom: 4px;
+}
+.pz-metric-label { font-size: 11.5px; font-weight: 600; color: var(--app-muted); }
+.pz-metric-value { font-size: 11.5px; font-weight: 700; color: var(--app-ink); white-space: nowrap; }
+.pz-bar {
+  height: 7px; border-radius: 999px; background: var(--app-line);
+  overflow: hidden;
+}
+.pz-bar-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--app-sky), var(--app-teal));
+  transition: width .3s ease;
+}
+.pz-metric-foot { font-size: 10.5px; color: var(--app-muted-2); margin-top: 3px; }
+
+@media (max-width: 560px) {
+  .pz-zone-grid { grid-template-columns: 1fr; }
+}

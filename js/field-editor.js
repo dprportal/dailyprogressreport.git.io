@@ -402,6 +402,148 @@ async function addCustomField(e) {
 }
 
 /* =============================================
+   CUSTOM SECTIONS (Admin → Field Editor)
+   Lets the admin add whole new sections (e.g. "Safety Compliance")
+   to the DPR form, beyond the built-in ones, and reorder them.
+   Stored as one document: settings/customSections
+   { sections: [{ id, title, icon, order }] }
+   Fields get attached to a section by setting their `section` to
+   "custom:<id>"; dpr.js groups fields by that value into their own
+   card, titled per this list.
+   ============================================= */
+const CUSTOM_SECTIONS_DOC_ID = 'customSections';
+let sectionDragSrcEl = null;
+
+function slugify(text) {
+  return String(text).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || ('section' + Date.now());
+}
+
+async function loadCustomSections() {
+  try {
+    const doc = await DataService.getById(COLLECTIONS.SETTINGS, CUSTOM_SECTIONS_DOC_ID);
+    State.customSections = (doc && Array.isArray(doc.sections)) ? doc.sections : [];
+  } catch (e) {
+    console.error('loadCustomSections error:', e);
+    State.customSections = [];
+  }
+}
+
+async function saveCustomSections(sections) {
+  await DataService.set(COLLECTIONS.SETTINGS, CUSTOM_SECTIONS_DOC_ID, { sections });
+  State.customSections = sections;
+  window.dispatchEvent(new CustomEvent('sections:changed'));
+  window.dispatchEvent(new CustomEvent('fielddefs:changed')); // dpr.js already re-renders the form on this
+}
+
+async function addCustomSection(title, icon) {
+  const clean = String(title || '').trim();
+  if (!clean) return;
+  const sections = [...(State.customSections || [])];
+  const id = slugify(clean);
+  if (sections.some(s => s.id === id)) {
+    AppUtils.toast('A section with that name already exists.', true);
+    return;
+  }
+  sections.push({ id, title: clean, icon: icon || 'fa-solid fa-layer-group', order: sections.length });
+  await saveCustomSections(sections);
+  renderSectionList();
+  populateSectionDropdowns();
+  AppUtils.toast(`Section "${clean}" added.`);
+}
+
+async function deleteCustomSection(id) {
+  const inUse = (State.fieldDefs || []).some(f => f.section === `custom:${id}`);
+  if (inUse && !confirm('Fields are still assigned to this section. Delete it anyway? Those fields will move to "Additional Fields".')) return;
+  const sections = (State.customSections || []).filter(s => s.id !== id);
+  sections.forEach((s, i) => { s.order = i; });
+  await saveCustomSections(sections);
+  renderSectionList();
+  populateSectionDropdowns();
+}
+
+function renderSectionList() {
+  const container = document.getElementById('custom-sections-list');
+  if (!container) return;
+
+  const sections = [...(State.customSections || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
+  if (sections.length === 0) {
+    container.innerHTML = '<p class="field-list-empty-inline">No custom sections yet — add one above (e.g. "Safety Compliance").</p>';
+    return;
+  }
+
+  container.innerHTML = sections.map((s, index) => `
+    <div class="section-def-item" data-section-id="${AppUtils.esc(s.id)}" data-index="${index}" draggable="true">
+      <div class="field-def-drag-handle" title="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i></div>
+      <div class="field-def-info">
+        <div class="fd-label"><i class="${AppUtils.esc(s.icon || 'fa-solid fa-layer-group')}"></i> ${AppUtils.esc(s.title)}</div>
+        <div class="fd-meta"><span style="color:var(--app-muted-2);">Field section value: custom:${AppUtils.esc(s.id)}</span></div>
+      </div>
+      <div class="field-def-actions">
+        <button class="delete" data-section-id="${AppUtils.esc(s.id)}" title="Delete section"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.section-def-item').forEach(item => {
+    item.addEventListener('dragstart', handleSectionDragStart);
+    item.addEventListener('dragenter', handleDragEnter);
+    item.addEventListener('dragover', handleDragOver);
+    item.addEventListener('dragleave', handleDragLeave);
+    item.addEventListener('drop', handleSectionDrop);
+    item.addEventListener('dragend', handleDragEnd);
+  });
+  container.querySelectorAll('.field-def-actions .delete').forEach(btn => {
+    btn.addEventListener('click', () => deleteCustomSection(btn.dataset.sectionId));
+  });
+}
+
+function handleSectionDragStart(e) {
+  sectionDragSrcEl = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleSectionDrop(e) {
+  e.stopPropagation();
+  if (sectionDragSrcEl !== this) {
+    const container = document.getElementById('custom-sections-list');
+    const items = [...container.querySelectorAll('.section-def-item')];
+    const srcIndex = items.indexOf(sectionDragSrcEl);
+    const targetIndex = items.indexOf(this);
+
+    const sections = [...(State.customSections || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
+    const [moved] = sections.splice(srcIndex, 1);
+    sections.splice(targetIndex, 0, moved);
+    sections.forEach((s, i) => { s.order = i; });
+
+    saveCustomSections(sections);
+    renderSectionList();
+    AppUtils.toast('Section order updated.');
+  }
+  return false;
+}
+
+/* Append the admin's custom sections to the "Section" dropdowns used by
+   the Add-Field form and the Edit-Field modal, after the built-in options. */
+function populateSectionDropdowns() {
+  ['af_section', 'fe_section'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const currentValue = sel.value;
+    sel.querySelectorAll('option[data-custom-section]').forEach(o => o.remove());
+    (State.customSections || []).forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = `custom:${s.id}`;
+      opt.textContent = s.title;
+      opt.dataset.customSection = '1';
+      sel.appendChild(opt);
+    });
+    if ([...sel.options].some(o => o.value === currentValue)) sel.value = currentValue;
+  });
+}
+
+/* =============================================
    RENDER FIELD LIST
    ============================================= */
 function renderFieldList() {
@@ -423,7 +565,20 @@ function renderFieldList() {
     const isSystem = f.system === true;
     const isHidden = f.visible === false;
     const typeClass = `type-${f.type}`;
-    const sectionClass = `section-${f.section || 'custom'}`;
+    const isCustomSection = typeof f.section === 'string' && f.section.startsWith('custom:');
+    const sectionClass = isCustomSection ? 'section-custom' : `section-${f.section || 'custom'}`;
+    const sectionLabels = {
+      work: 'Work', location: 'Location', pipe: 'Pipe', joints: 'Joints & Testing',
+      excavation: 'Excavation', restoration: 'Restoration', hydro: 'Hydro Test',
+      fittings: 'Fittings', manpower: 'Manpower',
+      contractor: 'Contractor', remarks: 'Remarks', custom: 'Custom'
+    };
+    let sectionLabel = sectionLabels[f.section] || f.section;
+    if (isCustomSection) {
+      const secId = f.section.slice('custom:'.length);
+      const match = (State.customSections || []).find(s => s.id === secId);
+      sectionLabel = match ? match.title : 'Custom (deleted section)';
+    }
     const key = f.id || f.fieldId;
 
     return `
@@ -440,7 +595,7 @@ function renderFieldList() {
             ${isHidden ? '<span class="fd-hidden-badge">Hidden</span>' : ''}
           </div>
           <div class="fd-meta">
-            <span class="section-badge ${sectionClass}">${AppUtils.esc(sectionLabel(f.section))}</span>
+            <span class="section-badge ${sectionClass}">${AppUtils.esc(sectionLabel)}</span>
             <span style="margin-left:6px; color:var(--app-muted-2);">ID: ${AppUtils.esc(f.fieldId)}</span>
           </div>
         </div>
@@ -954,48 +1109,6 @@ async function saveSettings() {
 /* =============================================
    INITIALIZATION
    ============================================= */
-/* =============================================
-   SECTION LIST INTEGRATION (Section Management)
-   Populates the "Section" <select> in both the Add Field form
-   and the Edit Field modal from the live, admin-editable
-   sections list (js/sections.js) instead of a fixed set — so
-   any section the admin adds/renames/reorders shows up here
-   immediately, and any field (system or custom) can be moved
-   into it.
-   ============================================= */
-const FALLBACK_SECTIONS = [
-  { id: 'work', label: 'Work Details' }, { id: 'location', label: 'Location' },
-  { id: 'pipe', label: 'Pipe Specification' }, { id: 'joints', label: 'Joints, Welding & Testing' },
-  { id: 'excavation', label: 'Excavation Details' }, { id: 'restoration', label: 'Restoration' },
-  { id: 'hydro', label: 'Hydro Test' }, { id: 'fittings', label: 'Fittings & Meters' },
-  { id: 'manpower', label: 'Manpower & Time' }, { id: 'contractor', label: 'Contractor' },
-  { id: 'remarks', label: 'Remarks' }, { id: 'custom', label: 'Custom Section' }
-];
-
-function currentSectionList() {
-  const list = (State.sections && State.sections.length ? State.sections : FALLBACK_SECTIONS).slice();
-  // "Work Details" isn't a Section Management entry (it's the fixed top block),
-  // but fields still need to be assignable to it, so always offer it first.
-  if (!list.some(s => s.id === 'work')) list.unshift({ id: 'work', label: 'Work Details', order: -1 });
-  return list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-}
-
-function sectionLabel(id) {
-  const found = currentSectionList().find(s => s.id === id);
-  return found ? found.label : (id || 'custom');
-}
-
-function populateSectionSelects() {
-  const list = currentSectionList();
-  ['af_section', 'fe_section'].forEach(selId => {
-    const sel = document.getElementById(selId);
-    if (!sel) return;
-    const prev = sel.value;
-    sel.innerHTML = list.map(s => `<option value="${AppUtils.esc(s.id)}">${AppUtils.esc(s.label)}</option>`).join('');
-    if (prev && list.some(s => s.id === prev)) sel.value = prev;
-  });
-}
-
 async function init() {
   // Setup handlers
   setupAdminNav();
@@ -1006,6 +1119,17 @@ async function init() {
   const addFieldForm = document.getElementById('addFieldForm');
   if (addFieldForm) {
     addFieldForm.addEventListener('submit', addCustomField);
+  }
+
+  // Custom sections ("Manage Sections")
+  const addSectionForm = document.getElementById('addSectionForm');
+  if (addSectionForm) {
+    addSectionForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const titleInput = document.getElementById('as_title');
+      addCustomSection(titleInput.value);
+      titleInput.value = '';
+    });
   }
 
   // Edit field modal
@@ -1029,23 +1153,18 @@ async function init() {
   // Navigation
   window.addEventListener('app:navigate', (e) => {
     if (e.detail.page === 'admin') {
-      populateSectionSelects();
       renderFieldList();
+      renderSectionList();
     }
   });
 
   // Boot
   window.addEventListener('app:boot', async () => {
     await ensureFieldDefs();
-    populateSectionSelects();
+    await loadCustomSections();
+    populateSectionDropdowns();
     renderFieldList();
-  });
-
-  // Section Management (js/sections.js) changed the section list — refresh
-  // the pickers and re-render so labels/badges stay accurate.
-  window.addEventListener('sections:changed', () => {
-    populateSectionSelects();
-    renderFieldList();
+    renderSectionList();
   });
 }
 

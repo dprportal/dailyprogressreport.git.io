@@ -78,32 +78,48 @@ const TOKENS = {
   remark:          { label: 'Remarks',          get: r => r.remark }
 };
 
-// {{customFields}} is a block token -- resolved separately before line processing.
-// Ordered to match the DPR Form: by section order (Section Management), then
-// by each field's own order within that section.
+// {{customFields}} is a block token -- resolved separately before line
+// processing. Custom fields assigned to one of the admin's named custom
+// sections (Admin -> Field Editor -> Manage Sections, e.g. "Safety
+// Compliance") are grouped under a bold heading matching that section,
+// in the same admin-defined order as the DPR form. Anything else (no
+// section, or a section that's since been deleted) is listed plainly,
+// same as before this feature existed.
 function customFieldsBlock(r) {
   if (!r.customFields || typeof r.customFields !== 'object') return '';
-  const defs = State.fieldDefs || [];
-  const sections = State.sections || [];
-  const sectionOrder = id => {
-    if (id === 'work') return -1;
-    const s = sections.find(x => x.id === id);
-    return s ? s.order : 999;
+
+  const fieldDefs = State.fieldDefs || [];
+  const customSections = [...(State.customSections || [])].sort((a, b) => (a.order || 0) - (b.order || 0));
+
+  const lineFor = (label, v) => {
+    if (v === undefined || v === null || String(v).trim() === '') return '';
+    return `${label}: ${String(v).trim()}`;
   };
-  return Object.keys(r.customFields)
-    .map(k => ({ k, def: defs.find(d => d.fieldId === k) }))
-    .sort((a, b) => {
-      const sa = sectionOrder(a.def ? a.def.section : 'custom');
-      const sb = sectionOrder(b.def ? b.def.section : 'custom');
-      return sa !== sb ? sa - sb : ((a.def && a.def.order) || 0) - ((b.def && b.def.order) || 0);
-    })
-    .map(({ k, def }) => {
-      const v = r.customFields[k];
-      if (v === undefined || v === null || String(v).trim() === '') return '';
-      return `${def ? def.label : k}: ${String(v).trim()}`;
-    })
-    .filter(Boolean)
-    .join('\n');
+
+  const bucketed = new Map(); // sectionId ("__default__" for the fallback) -> [line, ...]
+  Object.keys(r.customFields).forEach(fieldId => {
+    const def = fieldDefs.find(f => f.fieldId === fieldId);
+    const label = def ? def.label : fieldId;
+    const line = lineFor(label, r.customFields[fieldId]);
+    if (!line) return;
+
+    const isNamed = def && typeof def.section === 'string' && def.section.startsWith('custom:');
+    const secId = isNamed ? def.section.slice('custom:'.length) : null;
+    const known = secId && customSections.some(s => s.id === secId);
+    const key = known ? secId : '__default__';
+    if (!bucketed.has(key)) bucketed.set(key, []);
+    bucketed.get(key).push(line);
+  });
+
+  const parts = [];
+  customSections.forEach(sec => {
+    const lines = bucketed.get(sec.id);
+    if (lines && lines.length) parts.push(`*${sec.title}*\n${lines.join('\n')}`);
+  });
+  const leftover = bucketed.get('__default__');
+  if (leftover && leftover.length) parts.push(leftover.join('\n'));
+
+  return parts.join('\n\n');
 }
 
 /* =============================================

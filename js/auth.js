@@ -31,6 +31,7 @@ const State = window.AppState || {
   engineers: [],
   dprs: [],
   fieldDefs: [],
+  customSections: [],
   editingRecordId: null,
   settings: { snoStart: 1 }
 };

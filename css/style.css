@@ -7,27 +7,27 @@
    DESIGN TOKENS & CSS VARIABLES
    ============================================= */
 :root {
-  /* Brand Primary Palette — Professional Blue */
-  --teal-50: #EAF1FB;
-  --teal-100: #CFE0F7;
-  --teal-200: #9FC1EF;
-  --teal-300: #6699E0;
-  --teal-400: #3B76D6;
-  --teal-500: #1D5BC4;
-  --teal-600: #14459C;
-  --teal-700: #0E3474;
-  --teal-800: #0A2450;
-  --teal-900: #06162E;
+  /* Brand Primary Palette — Neon Blue on Black */
+  --teal-50: #E7EFFD;
+  --teal-100: #C2D7FA;
+  --teal-200: #93B8F5;
+  --teal-300: #5B92EF;
+  --teal-400: #2F6FEA;
+  --teal-500: #1656D6;
+  --teal-600: #1044AD;
+  --teal-700: #0C3484;
+  --teal-800: #08245C;
+  --teal-900: #041534;
 
-  /* Accent (electric / sky blue) */
-  --sky-400: #3FA9F5;
-  --sky-500: #1E8FE0;
-  --sky-600: #146FB3;
+  /* Neon Accent (electric cyan-blue) */
+  --sky-400: #3DD1FF;
+  --sky-500: #16A9E8;
+  --sky-600: #0D7FB3;
 
   /* Semantic Colors */
-  --danger-400: #FF6B6B;
-  --danger-500: #E23E3E;
-  --danger-600: #B32E2E;
+  --danger-400: #FF5C6C;
+  --danger-500: #E0303F;
+  --danger-600: #A8141F;
   --warning-400: #FFB238;
   --warning-500: #E08F0F;
   --success-400: #38E07A;
@@ -35,35 +35,35 @@
   --info-400: #4DD2E8;
   --info-500: #1FA8C4;
 
-  /* Dark Theme (Login / app chrome) — black to deep navy */
+  /* Dark Theme (Login / app chrome) — true black */
   --bg-primary: #05070C;
-  --bg-secondary: #080B12;
-  --bg-tertiary: #0D1119;
+  --bg-secondary: #090C13;
+  --bg-tertiary: #0D111A;
   --bg-elevated: #131826;
   --surface-primary: rgba(255,255,255,0.045);
   --surface-secondary: rgba(255,255,255,0.075);
   --surface-tertiary: rgba(255,255,255,0.11);
-  --border-primary: rgba(61,124,214,0.18);
-  --border-secondary: rgba(61,124,214,0.30);
-  --text-primary: #F1F4F9;
-  --text-secondary: #A7B0C0;
-  --text-tertiary: #6C7689;
-  --text-muted: #454D5E;
+  --border-primary: rgba(61,209,255,0.16);
+  --border-secondary: rgba(61,209,255,0.28);
+  --text-primary: #F1F4FA;
+  --text-secondary: #9CA6B8;
+  --text-tertiary: #656E80;
+  --text-muted: #414957;
 
-  /* App Theme (Light mode — cool grey with blue accent) */
-  --app-bg: #F1F4F9;
+  /* App Theme (Light mode — off-white with blue accent) */
+  --app-bg: #F1F3F8;
   --app-surface: #FFFFFF;
-  --app-ink: #10141F;
-  --app-muted: #5B6474;
-  --app-muted-2: #8A93A3;
-  --app-line: #DCE3EE;
-  --app-teal: #1D5BC4;
-  --app-teal-dark: #14459C;
-  --app-teal-light: #EAF1FB;
-  --app-sky: #146FB3;
-  --app-sky-light: #E7F3FC;
-  --app-slate: #4B5566;
-  --app-slate-light: #E9EDF3;
+  --app-ink: #101521;
+  --app-muted: #5C6577;
+  --app-muted-2: #8B93A3;
+  --app-line: #DEE4F0;
+  --app-teal: #1656D6;
+  --app-teal-dark: #0C3484;
+  --app-teal-light: #E7EFFD;
+  --app-sky: #0D7FB3;
+  --app-sky-light: #E5F6FC;
+  --app-slate: #5C525A;
+  --app-slate-light: #EDE7E8;
   --app-amber: #C97A1F;
   --app-amber-light: #FBEFDE;
   --app-moss: #17915A;
@@ -97,7 +97,7 @@
   --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
   --shadow-xl: 0 16px 48px rgba(0,0,0,0.6);
-  --glow-teal: 0 0 20px rgba(29,91,196,0.35);
+  --glow-teal: 0 0 20px rgba(22,86,214,0.35);
   --app-shadow: 0 1px 2px rgba(15,10,11,0.06), 0 6px 16px -8px rgba(15,10,11,0.14);
 
   /* Typography */
@@ -279,8 +279,8 @@ button { cursor: pointer; }
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 30%, rgba(227,30,46,0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(255,59,92,0.10) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 20% 30%, rgba(22,86,214,0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(61,209,255,0.10) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -288,8 +288,8 @@ button { cursor: pointer; }
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(227,30,46,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(227,30,46,0.05) 1px, transparent 1px);
+    linear-gradient(rgba(22,86,214,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22,86,214,0.05) 1px, transparent 1px);
   background-size: 50px 50px;
   pointer-events: none;
 }
@@ -384,7 +384,7 @@ button { cursor: pointer; }
 .form-input:focus {
   border-color: var(--teal-500);
   background: var(--surface-secondary);
-  box-shadow: 0 0 0 3px rgba(227,30,46,0.18);
+  box-shadow: 0 0 0 3px rgba(22,86,214,0.18);
 }
 
 .input-icon {
@@ -438,7 +438,7 @@ button { cursor: pointer; }
 }
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(227,30,46,0.4);
+  box-shadow: 0 6px 20px rgba(22,86,214,0.4);
 }
 
 .btn-outline {
@@ -463,12 +463,12 @@ button { cursor: pointer; }
 }
 
 .btn-info {
-  background: rgba(196,16,46,0.15);
-  border-color: rgba(196,16,46,0.3);
+  background: rgba(13,127,179,0.15);
+  border-color: rgba(13,127,179,0.3);
   color: var(--info-400);
 }
 .btn-info:hover:not(:disabled) {
-  background: rgba(196,16,46,0.25);
+  background: rgba(13,127,179,0.25);
   border-color: var(--info-500);
 }
 
@@ -577,7 +577,7 @@ button { cursor: pointer; }
 .eng-select-search input:focus {
   border-color: var(--teal-500);
   background: var(--surface-secondary);
-  box-shadow: 0 0 0 3px rgba(227,30,46,0.1);
+  box-shadow: 0 0 0 3px rgba(22,86,214,0.1);
   outline: none;
 }
 .eng-select-search i {
@@ -741,7 +741,7 @@ button { cursor: pointer; }
 .password-input-wrapper input:focus {
   border-color: var(--teal-500);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(227,30,46,0.1);
+  box-shadow: 0 0 0 3px rgba(22,86,214,0.1);
 }
 
 .form-hint {
@@ -786,30 +786,20 @@ button { cursor: pointer; }
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  background: linear-gradient(120deg, #05070C 0%, var(--app-teal-dark) 55%, var(--app-teal) 100%);
+  background: linear-gradient(135deg, var(--app-teal-dark), var(--app-teal) 70%);
   color: #fff;
-  padding: 14px 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--app-line);
 }
-.suez-logo-header { padding: 2px 0; }
 .topbar-inner {
   max-width: 1100px;
   margin: 0 auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 14px;
 }
-.topbar-brand .eyebrow {
-  font-size: 11.5px;
-  letter-spacing: .11em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.72);
-  font-weight: 600;
-  margin: 0 0 4px;
-}
-.topbar-brand h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
-.topbar-brand .sub { margin: 4px 0 0; font-size: 12.5px; color: rgba(255,255,255,.78); }
+.topbar-left { display: flex; align-items: center; }
 
 .topbar-user { text-align: right; flex: none; }
 .topbar-user .who { margin: 0 0 8px; font-size: 12px; color: rgba(255,255,255,.85); }
@@ -911,10 +901,7 @@ nav.tabs button:hover { color: var(--app-teal-dark); }
   box-shadow: var(--app-shadow);
   margin-bottom: 16px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
-#dprForm { display: flex; flex-direction: column; }
 .sw-card-head {
   display: flex;
   align-items: center;
@@ -965,11 +952,11 @@ nav.tabs button:hover { color: var(--app-teal-dark); }
 .sw-btn-danger { background: transparent; border-color: var(--app-rose-light); color: var(--app-rose); }
 .sw-btn-danger:hover { background: var(--app-rose-light); }
 .sw-btn-info {
-  background: rgba(196,16,46,0.1);
-  border-color: rgba(196,16,46,0.3);
+  background: rgba(13,127,179,0.1);
+  border-color: rgba(13,127,179,0.3);
   color: var(--app-sky);
 }
-.sw-btn-info:hover { background: rgba(196,16,46,0.2); }
+.sw-btn-info:hover { background: rgba(13,127,179,0.2); }
 .sw-btn-block { width: 100%; }
 .sw-btn-sm { padding: 7px 11px; font-size: 12.5px; border-radius: 7px; }
 
@@ -1279,13 +1266,6 @@ table.log tbody tr:hover { background: var(--app-slate-light); }
 /* Topbar logo + left cluster */
 .topbar-inner { align-items: center; }
 .topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.topbar-logo {
-  width: 42px; height: 42px; border-radius: 11px; flex: none;
-  background: rgba(255,255,255,.16);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
-  display: flex; align-items: center; justify-content: center;
-}
-.topbar-logo .brand-logo { width: 60%; height: 60%; color: #fff; }
 
 /* Install buttons */
 .install-btn[hidden] { display: none !important; }
@@ -1346,20 +1326,8 @@ table.log tbody tr:hover { background: var(--app-slate-light); }
   .topbar { padding: 10px 12px; padding-top: calc(10px + env(safe-area-inset-top)); }
   .topbar-inner { align-items: center; gap: 8px; }
   .topbar-left { gap: 8px; flex: 1 1 auto; min-width: 0; }
-  .topbar-logo { width: 34px; height: 34px; border-radius: 9px; }
-  .suez-logo-3d { display: none; }    /* redundant with the hamburger + drawer branding on phones */
-  .topbar-brand { min-width: 0; overflow: hidden; }
-  .topbar-brand .eyebrow {
-    font-size: 8.5px; letter-spacing: .04em; margin: 0 0 1px; line-height: 1.2;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .topbar-brand h1 {
-    font-size: 14px; line-height: 1.2;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .topbar-brand .sub { display: none; }              /* hide long descriptive subtitle on phones */
 
-  .topbar-user { flex: 0 0 auto; max-width: 40%; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; text-align: right; }
+  .topbar-user { flex: 0 0 auto; max-width: 62%; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; text-align: right; }
   .topbar-user .who {
     margin: 0; font-size: 10.5px; line-height: 1.3; max-width: 100%;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -1372,9 +1340,7 @@ table.log tbody tr:hover { background: var(--app-slate-light); }
 }
 
 @media (max-width: 420px) {
-  .topbar-brand h1 { font-size: 13px; }
-  .topbar-user { max-width: 34%; }
-  .topbar-logo { display: none; }    /* hamburger alone carries the mark at very small widths */
+  .topbar-user { max-width: 58%; }
   .role-tag { display: none; }       /* keep just the name, drop the pill badge to save space */
 }
 
@@ -1533,7 +1499,6 @@ nav.tabs { display: none !important; }   /* replaced by the drawer */
 
 @media (max-width: 768px) {
   .menu-toggle { width: 38px; height: 38px; font-size: 16px; }
-  .topbar-logo { display: none; }   /* hamburger stands in for the logo on phones */
 }
 
 /* ============================================================
@@ -1553,62 +1518,62 @@ nav.tabs { display: none !important; }   /* replaced by the drawer */
 .mod-chip.active i { color: #fff; }
 
 /* ============================================================
-   BLACK / RED / NEON THEME (appended)
-   Retunes the existing tokens to a premium black + neon-red
+   BLACK / BLUE / NEON THEME (appended)
+   Retunes the existing tokens to a premium black + neon-blue
    palette (dark stays dark, light stays light — contrast safe)
    and adds a subtle animated neon underline under the header.
    ============================================================ */
 :root {
-  /* Dark login/chrome surfaces -> black to navy gradient base */
-  --bg-primary: #05070C;
-  --bg-secondary: #080B12;
-  --bg-tertiary: #0D1119;
-  --bg-elevated: #131826;
-  --text-primary: #F1F4F9;
-  --text-secondary: #A7B0C0;
+  /* Dark login/chrome surfaces -> true black */
+  --bg-primary: #05070A;
+  --bg-secondary: #090C11;
+  --bg-tertiary: #0E121B;
+  --bg-elevated: #141A26;
+  --text-primary: #F1F4FA;
+  --text-secondary: #9CA6B8;
 
   /* Light app surfaces */
-  --app-bg: #F1F4F9;
-  --app-ink: #10141F;
-  --app-line: #DCE3EE;
-  --app-muted: #5B6474;
+  --app-bg: #F1F3F8;
+  --app-ink: #101521;
+  --app-line: #DEE4F0;
+  --app-muted: #5C6577;
 
-  /* Brand -> professional blue accents */
-  --app-teal: #1D5BC4;
-  --app-teal-dark: #123C82;
-  --app-teal-light: #EAF1FB;
-  --app-sky: #1E8FE0;
-  --app-sky-light: #E7F3FC;
+  /* Brand -> neon blue + cyan accents */
+  --app-teal: #1656D6;
+  --app-teal-dark: #0C3484;
+  --app-teal-light: #E7EFFD;
+  --app-sky: #0D7FB3;
+  --app-sky-light: #E5F6FC;
 }
 
-/* Animated glowing underline under the header */
+/* Animated neon underline under the header */
 .topbar { position: sticky; top: 0; overflow: hidden; }
 .topbar::after {
   content: "";
   position: absolute; left: 0; right: 0; bottom: -1px; height: 3px;
-  background-image: linear-gradient(90deg, transparent, #1E8FE0 20%, #6FC3FF 50%, #1E8FE0 80%, transparent);
+  background-image: linear-gradient(90deg, transparent, #2F6FEA 20%, #3DD1FF 50%, #2F6FEA 80%, transparent);
   background-repeat: repeat-x;
   background-size: 240px 3px;
-  box-shadow: 0 0 10px rgba(30,143,224,.55);
+  box-shadow: 0 0 10px rgba(61,209,255,.55);
   animation: dprWave 6s linear infinite;
   pointer-events: none;
 }
 @keyframes dprWave { from { background-position-x: 0; } to { background-position-x: -240px; } }
 
-/* Gradient primary buttons + soft glow depth */
+/* Gradient primary buttons + neon glow depth */
 .sw-btn-primary {
   background: linear-gradient(135deg, var(--app-sky), var(--app-teal) 72%);
   border: none;
-  box-shadow: 0 4px 14px rgba(29,91,196,.32);
+  box-shadow: 0 4px 14px rgba(22,86,214,.32);
 }
 .sw-btn-primary:hover {
   background: linear-gradient(135deg, var(--app-sky), var(--app-teal-dark) 82%);
-  box-shadow: 0 0 16px rgba(30,143,224,.5), 0 6px 18px rgba(29,91,196,.4);
+  box-shadow: 0 0 16px rgba(61,209,255,.5), 0 6px 18px rgba(22,86,214,.4);
 }
 
 /* Slightly softer, more premium cards */
 .sw-card { box-shadow: 0 2px 18px rgba(0,0,0,.5); }
-html:not([data-theme="dark"]) .sw-card { box-shadow: 0 2px 18px rgba(25,17,19,.08); }
+html:not([data-theme="dark"]) .sw-card { box-shadow: 0 2px 18px rgba(16,21,33,.08); }
 
 /* ============================================================
    FASTER / SMOOTHER DRAWER (appended override)
@@ -1635,19 +1600,19 @@ html:not([data-theme="dark"]) .sw-card { box-shadow: 0 2px 18px rgba(25,17,19,.0
    Toggled by js/theme.js; persisted in localStorage as "dpr-theme".
    ============================================================ */
 html[data-theme="dark"] {
-  --app-bg: #0A0A0B;
-  --app-surface: #131314;
-  --app-ink: #F3EFEF;
-  --app-muted: #A79FA0;
-  --app-muted-2: #797071;
-  --app-line: #242024;
+  --app-bg: #090C11;
+  --app-surface: #121722;
+  --app-ink: #EFF2F8;
+  --app-muted: #9CA6B8;
+  --app-muted-2: #707A8C;
+  --app-line: #202737;
   --app-shadow: 0 2px 18px rgba(0,0,0,.55);
 
-  --app-teal-light: #0E1C33;
-  --app-sky: #5CA9F5;
-  --app-sky-light: #12233A;
-  --app-slate: #C2C9D6;
-  --app-slate-light: #1B2130;
+  --app-teal-light: #0E1F42;
+  --app-sky: #3DD1FF;
+  --app-sky-light: #0E2733;
+  --app-slate: #C3C9D6;
+  --app-slate-light: #1B212F;
   --app-amber: #E6B372;
   --app-amber-light: #3A2A12;
   --app-moss: #6DE39C;
@@ -1706,7 +1671,7 @@ html[data-theme="dark"] .theme-toggle-btn i.fa-sun { display: inline; }
 }
 .suez-logo-3d img {
   display: block;
-  height: 30px;
+  height: 34px;
   width: auto;
   transform-style: preserve-3d;
   filter: drop-shadow(0 3px 6px rgba(0,0,0,.25));
@@ -1736,7 +1701,7 @@ html[data-theme="dark"] .theme-toggle-btn i.fa-sun { display: inline; }
 .drawer-suez-logo .suez-logo-3d img { height: 34px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.15)); }
 
 @media (max-width: 720px) {
-  .suez-logo-3d img { height: 24px; }
+  .suez-logo-3d img { height: 28px; }
   .login-brand .suez-logo-3d img { height: 38px; }
 }
 
