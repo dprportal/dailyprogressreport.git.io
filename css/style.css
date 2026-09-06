@@ -7,27 +7,27 @@
    DESIGN TOKENS & CSS VARIABLES
    ============================================= */
 :root {
-  /* Brand Primary Palette — Neon Red on Black */
-  --teal-50: #FDE9EA;
-  --teal-100: #F8C6C9;
-  --teal-200: #F0959B;
-  --teal-300: #E65C66;
-  --teal-400: #FF2E42;
-  --teal-500: #E31E2E;
-  --teal-600: #B8141F;
-  --teal-700: #8C0F18;
-  --teal-800: #5E0A10;
-  --teal-900: #33050A;
+  /* Brand Primary Palette — Professional Blue */
+  --teal-50: #EAF1FB;
+  --teal-100: #CFE0F7;
+  --teal-200: #9FC1EF;
+  --teal-300: #6699E0;
+  --teal-400: #3B76D6;
+  --teal-500: #1D5BC4;
+  --teal-600: #14459C;
+  --teal-700: #0E3474;
+  --teal-800: #0A2450;
+  --teal-900: #06162E;
 
-  /* Neon Accent (electric crimson / magenta-red) */
-  --sky-400: #FF3B5C;
-  --sky-500: #E0143D;
-  --sky-600: #A80F2E;
+  /* Accent (electric / sky blue) */
+  --sky-400: #3FA9F5;
+  --sky-500: #1E8FE0;
+  --sky-600: #146FB3;
 
   /* Semantic Colors */
-  --danger-400: #FF5C6C;
-  --danger-500: #E31E2E;
-  --danger-600: #A8141F;
+  --danger-400: #FF6B6B;
+  --danger-500: #E23E3E;
+  --danger-600: #B32E2E;
   --warning-400: #FFB238;
   --warning-500: #E08F0F;
   --success-400: #38E07A;
@@ -35,35 +35,35 @@
   --info-400: #4DD2E8;
   --info-500: #1FA8C4;
 
-  /* Dark Theme (Login / app chrome) — true black */
-  --bg-primary: #060607;
-  --bg-secondary: #0A0A0C;
-  --bg-tertiary: #101013;
-  --bg-elevated: #17171B;
+  /* Dark Theme (Login / app chrome) — black to deep navy */
+  --bg-primary: #05070C;
+  --bg-secondary: #080B12;
+  --bg-tertiary: #0D1119;
+  --bg-elevated: #131826;
   --surface-primary: rgba(255,255,255,0.045);
   --surface-secondary: rgba(255,255,255,0.075);
   --surface-tertiary: rgba(255,255,255,0.11);
-  --border-primary: rgba(255,45,66,0.16);
-  --border-secondary: rgba(255,45,66,0.28);
-  --text-primary: #F5F2F2;
-  --text-secondary: #A9A3A4;
-  --text-tertiary: #706A6B;
-  --text-muted: #4A4546;
+  --border-primary: rgba(61,124,214,0.18);
+  --border-secondary: rgba(61,124,214,0.30);
+  --text-primary: #F1F4F9;
+  --text-secondary: #A7B0C0;
+  --text-tertiary: #6C7689;
+  --text-muted: #454D5E;
 
-  /* App Theme (Light mode — off-white with red accent) */
-  --app-bg: #F4F1F1;
+  /* App Theme (Light mode — cool grey with blue accent) */
+  --app-bg: #F1F4F9;
   --app-surface: #FFFFFF;
-  --app-ink: #191113;
-  --app-muted: #665D5E;
-  --app-muted-2: #948B8C;
-  --app-line: #E8DEE0;
-  --app-teal: #E31E2E;
-  --app-teal-dark: #A8141F;
-  --app-teal-light: #FDE9EA;
-  --app-sky: #C4102E;
-  --app-sky-light: #FBE7EA;
-  --app-slate: #5C525A;
-  --app-slate-light: #EDE7E8;
+  --app-ink: #10141F;
+  --app-muted: #5B6474;
+  --app-muted-2: #8A93A3;
+  --app-line: #DCE3EE;
+  --app-teal: #1D5BC4;
+  --app-teal-dark: #14459C;
+  --app-teal-light: #EAF1FB;
+  --app-sky: #146FB3;
+  --app-sky-light: #E7F3FC;
+  --app-slate: #4B5566;
+  --app-slate-light: #E9EDF3;
   --app-amber: #C97A1F;
   --app-amber-light: #FBEFDE;
   --app-moss: #17915A;
@@ -97,7 +97,7 @@
   --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
   --shadow-xl: 0 16px 48px rgba(0,0,0,0.6);
-  --glow-teal: 0 0 20px rgba(227,30,46,0.35);
+  --glow-teal: 0 0 20px rgba(29,91,196,0.35);
   --app-shadow: 0 1px 2px rgba(15,10,11,0.06), 0 6px 16px -8px rgba(15,10,11,0.14);
 
   /* Typography */
@@ -786,11 +786,12 @@ button { cursor: pointer; }
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  background: linear-gradient(135deg, var(--app-teal-dark), var(--app-teal) 70%);
+  background: linear-gradient(120deg, #05070C 0%, var(--app-teal-dark) 55%, var(--app-teal) 100%);
   color: #fff;
-  padding: 18px 16px 14px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--app-line);
 }
+.suez-logo-header { padding: 2px 0; }
 .topbar-inner {
   max-width: 1100px;
   margin: 0 auto;
@@ -910,7 +911,10 @@ nav.tabs button:hover { color: var(--app-teal-dark); }
   box-shadow: var(--app-shadow);
   margin-bottom: 16px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+#dprForm { display: flex; flex-direction: column; }
 .sw-card-head {
   display: flex;
   align-items: center;
@@ -1555,51 +1559,51 @@ nav.tabs { display: none !important; }   /* replaced by the drawer */
    and adds a subtle animated neon underline under the header.
    ============================================================ */
 :root {
-  /* Dark login/chrome surfaces -> true black */
-  --bg-primary: #08080A;
-  --bg-secondary: #0D0D10;
-  --bg-tertiary: #131316;
-  --bg-elevated: #1B1B1F;
-  --text-primary: #F5F1F1;
-  --text-secondary: #A79FA0;
+  /* Dark login/chrome surfaces -> black to navy gradient base */
+  --bg-primary: #05070C;
+  --bg-secondary: #080B12;
+  --bg-tertiary: #0D1119;
+  --bg-elevated: #131826;
+  --text-primary: #F1F4F9;
+  --text-secondary: #A7B0C0;
 
   /* Light app surfaces */
-  --app-bg: #F4F1F1;
-  --app-ink: #191113;
-  --app-line: #E8DEE0;
-  --app-muted: #665D5E;
+  --app-bg: #F1F4F9;
+  --app-ink: #10141F;
+  --app-line: #DCE3EE;
+  --app-muted: #5B6474;
 
-  /* Brand -> neon red + crimson accents */
-  --app-teal: #E31E2E;
-  --app-teal-dark: #A8141F;
-  --app-teal-light: #FDE9EA;
-  --app-sky: #C4102E;
-  --app-sky-light: #FBE7EA;
+  /* Brand -> professional blue accents */
+  --app-teal: #1D5BC4;
+  --app-teal-dark: #123C82;
+  --app-teal-light: #EAF1FB;
+  --app-sky: #1E8FE0;
+  --app-sky-light: #E7F3FC;
 }
 
-/* Animated neon underline under the header */
+/* Animated glowing underline under the header */
 .topbar { position: sticky; top: 0; overflow: hidden; }
 .topbar::after {
   content: "";
   position: absolute; left: 0; right: 0; bottom: -1px; height: 3px;
-  background-image: linear-gradient(90deg, transparent, #FF2E42 20%, #FF6B7A 50%, #FF2E42 80%, transparent);
+  background-image: linear-gradient(90deg, transparent, #1E8FE0 20%, #6FC3FF 50%, #1E8FE0 80%, transparent);
   background-repeat: repeat-x;
   background-size: 240px 3px;
-  box-shadow: 0 0 10px rgba(255,46,66,.55);
+  box-shadow: 0 0 10px rgba(30,143,224,.55);
   animation: dprWave 6s linear infinite;
   pointer-events: none;
 }
 @keyframes dprWave { from { background-position-x: 0; } to { background-position-x: -240px; } }
 
-/* Gradient primary buttons + neon glow depth */
+/* Gradient primary buttons + soft glow depth */
 .sw-btn-primary {
   background: linear-gradient(135deg, var(--app-sky), var(--app-teal) 72%);
   border: none;
-  box-shadow: 0 4px 14px rgba(227,30,46,.32);
+  box-shadow: 0 4px 14px rgba(29,91,196,.32);
 }
 .sw-btn-primary:hover {
   background: linear-gradient(135deg, var(--app-sky), var(--app-teal-dark) 82%);
-  box-shadow: 0 0 16px rgba(255,46,66,.5), 0 6px 18px rgba(227,30,46,.4);
+  box-shadow: 0 0 16px rgba(30,143,224,.5), 0 6px 18px rgba(29,91,196,.4);
 }
 
 /* Slightly softer, more premium cards */
@@ -1639,11 +1643,11 @@ html[data-theme="dark"] {
   --app-line: #242024;
   --app-shadow: 0 2px 18px rgba(0,0,0,.55);
 
-  --app-teal-light: #2A0E13;
-  --app-sky: #FF5C74;
-  --app-sky-light: #24121A;
-  --app-slate: #C7BFC0;
-  --app-slate-light: #1E1B1D;
+  --app-teal-light: #0E1C33;
+  --app-sky: #5CA9F5;
+  --app-sky-light: #12233A;
+  --app-slate: #C2C9D6;
+  --app-slate-light: #1B2130;
   --app-amber: #E6B372;
   --app-amber-light: #3A2A12;
   --app-moss: #6DE39C;

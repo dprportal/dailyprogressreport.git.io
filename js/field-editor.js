@@ -424,12 +424,6 @@ function renderFieldList() {
     const isHidden = f.visible === false;
     const typeClass = `type-${f.type}`;
     const sectionClass = `section-${f.section || 'custom'}`;
-    const sectionLabels = {
-      work: 'Work', location: 'Location', pipe: 'Pipe', joints: 'Joints & Testing',
-      excavation: 'Excavation', restoration: 'Restoration', hydro: 'Hydro Test',
-      fittings: 'Fittings', manpower: 'Manpower',
-      contractor: 'Contractor', remarks: 'Remarks', custom: 'Custom'
-    };
     const key = f.id || f.fieldId;
 
     return `
@@ -446,7 +440,7 @@ function renderFieldList() {
             ${isHidden ? '<span class="fd-hidden-badge">Hidden</span>' : ''}
           </div>
           <div class="fd-meta">
-            <span class="section-badge ${sectionClass}">${sectionLabels[f.section] || f.section}</span>
+            <span class="section-badge ${sectionClass}">${AppUtils.esc(sectionLabel(f.section))}</span>
             <span style="margin-left:6px; color:var(--app-muted-2);">ID: ${AppUtils.esc(f.fieldId)}</span>
           </div>
         </div>
@@ -960,6 +954,48 @@ async function saveSettings() {
 /* =============================================
    INITIALIZATION
    ============================================= */
+/* =============================================
+   SECTION LIST INTEGRATION (Section Management)
+   Populates the "Section" <select> in both the Add Field form
+   and the Edit Field modal from the live, admin-editable
+   sections list (js/sections.js) instead of a fixed set — so
+   any section the admin adds/renames/reorders shows up here
+   immediately, and any field (system or custom) can be moved
+   into it.
+   ============================================= */
+const FALLBACK_SECTIONS = [
+  { id: 'work', label: 'Work Details' }, { id: 'location', label: 'Location' },
+  { id: 'pipe', label: 'Pipe Specification' }, { id: 'joints', label: 'Joints, Welding & Testing' },
+  { id: 'excavation', label: 'Excavation Details' }, { id: 'restoration', label: 'Restoration' },
+  { id: 'hydro', label: 'Hydro Test' }, { id: 'fittings', label: 'Fittings & Meters' },
+  { id: 'manpower', label: 'Manpower & Time' }, { id: 'contractor', label: 'Contractor' },
+  { id: 'remarks', label: 'Remarks' }, { id: 'custom', label: 'Custom Section' }
+];
+
+function currentSectionList() {
+  const list = (State.sections && State.sections.length ? State.sections : FALLBACK_SECTIONS).slice();
+  // "Work Details" isn't a Section Management entry (it's the fixed top block),
+  // but fields still need to be assignable to it, so always offer it first.
+  if (!list.some(s => s.id === 'work')) list.unshift({ id: 'work', label: 'Work Details', order: -1 });
+  return list.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+function sectionLabel(id) {
+  const found = currentSectionList().find(s => s.id === id);
+  return found ? found.label : (id || 'custom');
+}
+
+function populateSectionSelects() {
+  const list = currentSectionList();
+  ['af_section', 'fe_section'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = list.map(s => `<option value="${AppUtils.esc(s.id)}">${AppUtils.esc(s.label)}</option>`).join('');
+    if (prev && list.some(s => s.id === prev)) sel.value = prev;
+  });
+}
+
 async function init() {
   // Setup handlers
   setupAdminNav();
@@ -993,6 +1029,7 @@ async function init() {
   // Navigation
   window.addEventListener('app:navigate', (e) => {
     if (e.detail.page === 'admin') {
+      populateSectionSelects();
       renderFieldList();
     }
   });
@@ -1000,6 +1037,14 @@ async function init() {
   // Boot
   window.addEventListener('app:boot', async () => {
     await ensureFieldDefs();
+    populateSectionSelects();
+    renderFieldList();
+  });
+
+  // Section Management (js/sections.js) changed the section list — refresh
+  // the pickers and re-render so labels/badges stay accurate.
+  window.addEventListener('sections:changed', () => {
+    populateSectionSelects();
     renderFieldList();
   });
 }

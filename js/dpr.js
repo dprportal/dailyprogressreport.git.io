@@ -873,7 +873,22 @@ async function loadRecordIntoForm(record) {
 
   // Pipe fields
   if (record.pipeDia) document.getElementById('f_pipeDia').value = record.pipeDia;
-  if (record.layingLength !== undefined) document.getElementById('f_layingLength').value = record.layingLength;
+  if (record.layingLength !== undefined) {
+    const llInput = document.getElementById('f_layingLength');
+    if (llInput) {
+      llInput.value = record.layingLength;
+      // Guard: a stale/mismatched admin field-definition condition (e.g. a
+      // leftover Work Type / Laying Work restriction) could otherwise leave
+      // this field disabled or hidden (.admin-hidden) even though it holds
+      // a genuinely saved value. A saved Pipe Laying Quantity must always
+      // be visible and editable when the record itself is Pipe Laying.
+      if (record.workType !== 'Hydro Test') {
+        const llWrap = document.getElementById('field-layingLength');
+        if (llWrap) { llWrap.classList.remove('admin-hidden'); llWrap.style.display = ''; }
+        llInput.disabled = false;
+      }
+    }
+  }
   if (record.pipeMaterial !== undefined) document.getElementById('f_pipeMaterial').value = record.pipeMaterial;
 
   // Joints, welding & testing
@@ -1154,6 +1169,8 @@ async function init() {
   window.addEventListener('app:boot', async () => {
     populateZones();
     renderCustomFields();
+    ensureCustomSectionCards();
+    applySectionOrder();
     updateFieldVisibility();
     applyFieldDefsToForm();
     await refreshSNo();
@@ -1162,6 +1179,17 @@ async function init() {
   // Listen for field definition changes
   window.addEventListener('fielddefs:changed', () => {
     renderCustomFields();
+    ensureCustomSectionCards();
+    updateFieldVisibility();
+    applyFieldDefsToForm();
+  });
+
+  // Section Management (js/sections.js) added/renamed/deleted/reordered a
+  // section — (re)create custom-section cards, re-run the layout engine so
+  // fields land in the right container, and re-apply the display order.
+  window.addEventListener('sections:changed', () => {
+    ensureCustomSectionCards();
+    applySectionOrder();
     updateFieldVisibility();
     applyFieldDefsToForm();
   });
@@ -1182,8 +1210,67 @@ async function init() {
   });
 }
 
+/* =============================================
+   SECTION MANAGEMENT INTEGRATION
+   Creates a real card in the DPR form for every admin-added
+   custom section (built-in sections already have fixed cards),
+   registers it into the Field Layout Engine, and applies the
+   admin-defined section order to every card — built-in and
+   custom alike — via CSS order (see #dprForm/.sw-card
+   display:flex in style.css).
+   ============================================= */
+function ensureCustomSectionCards() {
+  const sections = State.sections || [];
+  const anchor = document.getElementById('dynamic-fields-container');
+  const form = document.getElementById('dprForm');
+  if (!form) return;
+
+  sections.filter(s => !s.builtIn).forEach(s => {
+    const cardId = 'card-custom-' + s.id;
+    let card = document.getElementById(cardId);
+    if (!card) {
+      card = document.createElement('div');
+      card.className = 'sw-card';
+      card.id = cardId;
+      card.dataset.section = s.id;
+      card.innerHTML = `
+        <div class="sw-card-head" style="--accent: var(--app-teal); --accent-light: var(--app-teal-light);">
+          <div class="ic"><i class="fa-solid fa-layer-group"></i></div>
+          <div><h2 class="custom-section-title"></h2></div>
+        </div>
+        <div class="sw-card-body"></div>
+      `;
+      (anchor ? anchor.parentNode : form).insertBefore(card, anchor ? anchor.nextSibling : form.firstChild);
+      SECTION_CONTAINER_SELECTOR[s.id] = `#${cardId} .sw-card-body`;
+    }
+    const title = card.querySelector('.custom-section-title');
+    if (title) title.textContent = s.label;
+  });
+
+  // Hide a dynamically-created card once it's left empty (its only field(s)
+  // were moved/deleted elsewhere) so the form doesn't show an empty box.
+  document.querySelectorAll('[id^="card-custom-"]').forEach(card => {
+    const body = card.querySelector('.sw-card-body');
+    card.classList.toggle('hidden', !body || body.children.length === 0);
+  });
+}
+
+function applySectionOrder() {
+  const sections = State.sections || [];
+  const orderOf = id => {
+    if (id === 'work') return -1;
+    const s = sections.find(x => x.id === id);
+    return s ? s.order : 999;
+  };
+  document.querySelectorAll('#dprForm [data-section]').forEach(card => {
+    card.style.order = orderOf(card.dataset.section);
+  });
+}
+
 // Initialize
 init();
+
+
 
 /* =============================================
    MODULE MODE — open a module-locked entry form

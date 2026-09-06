@@ -78,14 +78,29 @@ const TOKENS = {
   remark:          { label: 'Remarks',          get: r => r.remark }
 };
 
-// {{customFields}} is a block token -- resolved separately before line processing
+// {{customFields}} is a block token -- resolved separately before line processing.
+// Ordered to match the DPR Form: by section order (Section Management), then
+// by each field's own order within that section.
 function customFieldsBlock(r) {
   if (!r.customFields || typeof r.customFields !== 'object') return '';
+  const defs = State.fieldDefs || [];
+  const sections = State.sections || [];
+  const sectionOrder = id => {
+    if (id === 'work') return -1;
+    const s = sections.find(x => x.id === id);
+    return s ? s.order : 999;
+  };
   return Object.keys(r.customFields)
-    .map(k => {
+    .map(k => ({ k, def: defs.find(d => d.fieldId === k) }))
+    .sort((a, b) => {
+      const sa = sectionOrder(a.def ? a.def.section : 'custom');
+      const sb = sectionOrder(b.def ? b.def.section : 'custom');
+      return sa !== sb ? sa - sb : ((a.def && a.def.order) || 0) - ((b.def && b.def.order) || 0);
+    })
+    .map(({ k, def }) => {
       const v = r.customFields[k];
       if (v === undefined || v === null || String(v).trim() === '') return '';
-      return `${k}: ${String(v).trim()}`;
+      return `${def ? def.label : k}: ${String(v).trim()}`;
     })
     .filter(Boolean)
     .join('\n');
